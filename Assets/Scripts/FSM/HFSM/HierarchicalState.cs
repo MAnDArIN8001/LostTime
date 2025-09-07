@@ -4,13 +4,18 @@ using UnityEngine;
 
 namespace HFSM
 {
-    public abstract class HierarchicalStates : State
+    public abstract class HierarchicalState : State
     {
-        protected HierarchicalStates _activeChild;
+        protected HierarchicalState _activeChild;
 
-        protected Dictionary<StateType, HierarchicalStates> _childStates = new ();
+        protected Dictionary<StateType, HierarchicalState> _childStates = new ();
 
         protected List<StateTransition> _stateTransitions = new ();
+
+        public HierarchicalState(StateType stateType) : base(stateType)
+        {
+            
+        }
 
         public override void Enter()
         {
@@ -29,7 +34,7 @@ namespace HFSM
             _activeChild?.Exit();
         }
         
-        public virtual void AddChildState(HierarchicalStates child)
+        public virtual void AddChildState(HierarchicalState child)
         {
             _childStates.Add(child.StateType, child);
         }
@@ -41,6 +46,11 @@ namespace HFSM
 
         protected void CheckTransitions()
         {
+            if (_childStates.Count == 0)
+            {
+                return;
+            }
+            
             for (var i = 0; i < _stateTransitions.Count; i++)
             {
                 var stateTransition = _stateTransitions[i];
