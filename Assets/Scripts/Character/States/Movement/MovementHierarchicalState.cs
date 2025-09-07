@@ -6,12 +6,18 @@ namespace Character.States
 {
     public class MovementHierarchicalState : HierarchicalState
     {
-        private readonly CharacterController _characterController;
+        private readonly StateType _defaultState;
         
-        public MovementHierarchicalState(StateType stateType, 
-            CharacterController characterController) : base(stateType)
+        public MovementHierarchicalState(StateType stateType, StateType defaultState) : base(stateType)
         {
-            _characterController = characterController;
+            _defaultState = defaultState;
+        }
+
+        public override void Enter()
+        {
+            base.Enter();
+            
+            ChangeState(_defaultState);
         }
     }
 }

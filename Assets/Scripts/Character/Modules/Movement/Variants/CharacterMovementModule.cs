@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Character.Modules.Movement.Variants
 {
-    public class CharacterControllerMovementModule : MovementModule
+    public class CharacterMovementModule : MovementModule
     {
         [Header("Movement")]
         [SerializeField] private float _acceleration = 12f;
@@ -16,31 +16,26 @@ namespace Character.Modules.Movement.Variants
         private float _currentSpeed;
         private float _verticalVelocity;
 
-        public float CurrentSpeed => _currentSpeed; 
+        private Vector3 _currentVelocity = Vector3.zero;
+        
+        public override float MovementSpeed => _currentSpeed;
+
+        public override Vector3 Velocity => _currentVelocity;
 
         public override Transform Root => _characterController.transform;
 
         public override void Move(float targetSpeed, Vector3 direction)
         {
-            float accel = targetSpeed > _currentSpeed ? _acceleration : _deceleration;
-            _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, accel * Time.deltaTime);
-
-            Vector3 horizontal = direction.normalized * _currentSpeed;
+            var speedDelta = targetSpeed * direction.magnitude > _currentSpeed ? _acceleration : _deceleration;
             
-            if (_characterController.isGrounded)
-            {
-                if (_verticalVelocity < 0f)
-                    _verticalVelocity = -2f;
-            }
-            else
-            {
-                _verticalVelocity += _gravity * Time.deltaTime;
-            }
+            _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed * direction.magnitude, speedDelta * Time.deltaTime);
+            _currentVelocity = (_currentVelocity + direction).normalized * _currentSpeed;
+            
+            _verticalVelocity = _characterController.isGrounded ? -2f :  _verticalVelocity + _gravity * Time.deltaTime;
+            
+            _currentVelocity.y = _verticalVelocity;
 
-            Vector3 velocity = horizontal;
-            velocity.y = _verticalVelocity;
-
-            _characterController.Move(velocity * Time.deltaTime);
+            _characterController.Move(_currentVelocity * Time.deltaTime);
         }
     }
 }
