@@ -16,7 +16,7 @@ namespace Character
         [SerializeField] private CharacterSetup _characterSetup;
         
         [Header("Modules")]
-        [Space, SerializeField] private MovementModule _movementModule;
+        [SerializeField] private MovementModule _movementModule;
         [SerializeField] private RotationModule _rotationModule;
         
         private StateMachine _movementStateMachine;
