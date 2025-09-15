@@ -1,3 +1,4 @@
+using Character.Modules.Animation;
 using FSM;
 using HFSM;
 using UnityEngine;
@@ -10,24 +11,31 @@ namespace Character.States
         protected readonly float _movementSpeed;
         
         protected readonly MovementModule _movementModule;
+        protected readonly AnimationModule _animationModule;
 
         protected readonly MainInput _mainInput;
 
+        private float _movementAnimationMagnitude;
+
         protected Vector2 _lastInput;
         
-        public CharacterMovementState(StateType stateType, MainInput mainInput, MovementModule movementModule, float movementSpeed) : base(stateType)
+        public CharacterMovementState(StateType stateType, float movementSpeed, MainInput mainInput, MovementModule movementModule, AnimationModule animationModule) : base(stateType)
         {
             _mainInput = mainInput;
             _movementSpeed = movementSpeed;
             _movementModule = movementModule;
+            _animationModule = animationModule;
         }
 
         public override void Update()
         {
             var input = ReadInputValue();
             var direction = ComputeMovementFromInput(input.normalized);
+
+            _movementAnimationMagnitude = Mathf.MoveTowards(_movementAnimationMagnitude, input.normalized.magnitude, 0.05f);
             
             _movementModule.Move(_movementSpeed, direction.normalized);
+            _animationModule.SetMovement(_movementAnimationMagnitude, 1);
             
             _lastInput = input;
         }

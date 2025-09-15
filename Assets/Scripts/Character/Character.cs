@@ -3,6 +3,7 @@ using Zenject;
 using UnityEngine;
 using Character.States;
 using System.Collections.Generic;
+using Character.Modules.Animation;
 using Character.Modules.Movement;
 using Character.Modules.Rotation;
 using Character.Setup;
@@ -18,6 +19,7 @@ namespace Character
         [Header("Modules")]
         [SerializeField] private MovementModule _movementModule;
         [SerializeField] private RotationModule _rotationModule;
+        [SerializeField] private AnimationModule _animationModule;
         
         private StateMachine _movementStateMachine;
 
@@ -41,9 +43,9 @@ namespace Character
         {
             var movementState = new MovementHierarchicalState(StateType.Movement, StateType.Walk);
             
-            movementState.AddChildState(new CharacterMovementState(StateType.Walk, _mainInput, _movementModule, _characterSetup.WalkSpeed));
+            movementState.AddChildState(new CharacterMovementState(StateType.Walk, _characterSetup.WalkSpeed, _mainInput, _movementModule, _animationModule));
             movementState.AddStateTransition(new StateTransition(StateType.Run, StateType.Walk, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
-            movementState.AddChildState(new CharacterMovementState(StateType.Run, _mainInput, _movementModule, _characterSetup.RunSpeed));
+            movementState.AddChildState(new CharacterMovementState(StateType.Run, _characterSetup.RunSpeed, _mainInput, _movementModule, _animationModule));
             movementState.AddStateTransition(new StateTransition(StateType.Walk, StateType.Run, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
 
             var idleState = new IdleHierarchicalState(StateType.Idle, StateType.Idle);

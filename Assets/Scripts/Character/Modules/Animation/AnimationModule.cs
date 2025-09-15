@@ -6,23 +6,12 @@ namespace Character.Modules.Animation
     {
         [Header("Animation Keys")] 
         [SerializeField] private string _inputKey;
-        [SerializeField] private string _runKey;
         
         [Space, SerializeField] protected Animator _animator;
-
-        public void PlayIdle()
+        
+        public void SetMovement(float input, int myltiplyer)
         {
-            
-        }
-
-        public void SetRunState(bool state)
-        {
-            _animator.SetFloat(_runKey, state ? 1 : 2);
-        }
-
-        public void SetInput(float input)
-        {
-            _animator.SetFloat(_runKey, input);
+            _animator.SetFloat(_inputKey, input * myltiplyer);
         }
     }
 }
