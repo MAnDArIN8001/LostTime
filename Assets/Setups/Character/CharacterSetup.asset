@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: CharacterSetup
   m_EditorClassIdentifier: 
   <RunSpeed>k__BackingField: 8
-  <WalkSpeed>k__BackingField: 4
+  <WalkSpeed>k__BackingField: 3

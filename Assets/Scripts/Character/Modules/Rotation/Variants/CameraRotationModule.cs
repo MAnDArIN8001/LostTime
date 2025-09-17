@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Character.Modules.Rotation.Variants
 {
-    public class CharacterRotationModule : RotationModule
+    public class CameraRotationModule : RotationModule
     {
         [SerializeField] private float _smoothTime = 0.05f;
         [SerializeField] private float _sensitivity = 1f;
@@ -20,7 +20,7 @@ namespace Character.Modules.Rotation.Variants
         private float _yaw;
         private float _pitch;
 
-        public override void Rotate(Vector2 input)
+        public override void Rotate(Vector3 input)
         {
             _currentInput = Vector2.SmoothDamp(_currentInput, input, ref _inputVelocity, _smoothTime);
             

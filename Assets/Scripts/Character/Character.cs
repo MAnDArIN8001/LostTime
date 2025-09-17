@@ -13,13 +13,16 @@ namespace Character
 {
     public class Character : MonoBehaviour
     {
-        //TODO move to setup
         [SerializeField] private CharacterSetup _characterSetup;
         
         [Header("Modules")]
         [SerializeField] private MovementModule _movementModule;
-        [SerializeField] private RotationModule _rotationModule;
         [SerializeField] private AnimationModule _animationModule;
+        [SerializeField] private RotationModule _rotationModule;
+        [SerializeField] private RotationModule _bodyRotationModule;
+
+        [Header("Roots")] 
+        [SerializeField] private Transform _camera;
         
         private StateMachine _movementStateMachine;
 
@@ -43,9 +46,9 @@ namespace Character
         {
             var movementState = new MovementHierarchicalState(StateType.Movement, StateType.Walk);
             
-            movementState.AddChildState(new CharacterMovementState(StateType.Walk, _characterSetup.WalkSpeed, _mainInput, _movementModule, _animationModule));
+            movementState.AddChildState(new CharacterMovementState(StateType.Walk, _characterSetup.WalkSpeed, _mainInput, _movementModule, _animationModule, _bodyRotationModule, _camera));
             movementState.AddStateTransition(new StateTransition(StateType.Run, StateType.Walk, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
-            movementState.AddChildState(new CharacterMovementState(StateType.Run, _characterSetup.RunSpeed, _mainInput, _movementModule, _animationModule));
+            movementState.AddChildState(new CharacterMovementState(StateType.Run, _characterSetup.RunSpeed, _mainInput, _movementModule, _animationModule, _bodyRotationModule, _camera));
             movementState.AddStateTransition(new StateTransition(StateType.Walk, StateType.Run, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
 
             var idleState = new IdleHierarchicalState(StateType.Idle, StateType.Idle);
