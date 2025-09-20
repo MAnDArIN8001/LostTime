@@ -31,7 +31,7 @@ namespace Character.Modules.Movement.Variants
             _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed * direction.magnitude, speedDelta * Time.deltaTime);
             _currentVelocity = (_currentVelocity + direction).normalized * _currentSpeed;
             
-            _verticalVelocity = _characterController.isGrounded ? -2f :  _verticalVelocity + _gravity * Time.deltaTime;
+            _verticalVelocity = _characterController.isGrounded ? 0 :  _verticalVelocity + _gravity * Time.deltaTime;
             
             _currentVelocity.y = _verticalVelocity;
 

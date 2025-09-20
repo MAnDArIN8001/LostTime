@@ -6,7 +6,6 @@ namespace Camera
     {
         [Header("Settings")]
         [SerializeField] private float _positionSmoothTime = 0.2f;
-        [SerializeField] private float _rotationSmoothSpeed = 5f;
 
         [Space, SerializeField] private Vector3 _offset = new Vector3(0, 5, -10);
         

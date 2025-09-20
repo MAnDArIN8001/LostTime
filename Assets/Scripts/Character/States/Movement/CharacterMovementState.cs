@@ -49,7 +49,7 @@ namespace Character.States
             var bodyForward = _movementModule.Root.forward;
             var cameraForward = Vector3.ProjectOnPlane(_camera.forward, Vector3.up).normalized;
             
-            var forwardDirection = bodyForward * input.y + cameraForward * input.y;
+            var forwardDirection = cameraForward * input.y;
             var rightDirection = _camera.right * input.x;
 
             return (forwardDirection + rightDirection).normalized;
