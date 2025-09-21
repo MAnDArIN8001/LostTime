@@ -48,7 +48,7 @@ namespace Character
             
             movementState.AddChildState(new CharacterMovementState(StateType.Walk, _characterSetup.WalkSpeed, _mainInput, _movementModule, _animationModule, _bodyRotationModule, _camera));
             movementState.AddStateTransition(new StateTransition(StateType.Run, StateType.Walk, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
-            movementState.AddChildState(new CharacterMovementState(StateType.Run, _characterSetup.RunSpeed, _mainInput, _movementModule, _animationModule, _bodyRotationModule, _camera));
+            movementState.AddChildState(new CharacterRunState(StateType.Run, _characterSetup.RunSpeed, _mainInput, _movementModule, _animationModule, _bodyRotationModule, _camera));
             movementState.AddStateTransition(new StateTransition(StateType.Walk, StateType.Run, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
 
             var idleState = new IdleHierarchicalState(StateType.Idle, StateType.Idle);

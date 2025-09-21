@@ -15,7 +15,7 @@ namespace Character.States
 
         private readonly RotationModule _rotationModule;
         private readonly MovementModule _movementModule;
-        private readonly AnimationModule _animationModule;
+        protected readonly AnimationModule _animationModule;
 
         private readonly MainInput _mainInput;
 
@@ -41,7 +41,7 @@ namespace Character.States
             _rotationModule.Rotate(direction);
             
             _movementModule.Move(_movementSpeed, direction.normalized);
-            _animationModule.SetMovement(_movementAnimationMagnitude, 1);
+            _animationModule.SetMovement(_movementAnimationMagnitude);
         }
 
         private Vector3 ComputeMovementFromInput(Vector2 input)
