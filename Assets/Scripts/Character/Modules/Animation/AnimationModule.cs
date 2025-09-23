@@ -13,7 +13,7 @@ namespace Character.Modules.Animation
         [SerializeField] private float _movementModifier;
         [SerializeField] private float _runModifier;
 
-        private float _currentModifier;
+        private float _currentModifier = 1;
 
         [SerializeField] private float _smoothStep;
         
