@@ -1511,11 +1511,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6f1756cb2b94091a2df623802405c76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _inputKey: Movement
-  _movementModifier: 1
-  _runModifier: 2
-  _smoothStep: 0.1
   _animator: {fileID: 369003192}
+  _animationParamsDataBase: {fileID: 11400000, guid: 0d42cf4df42378b41a6214cf1e960d68, type: 2}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0

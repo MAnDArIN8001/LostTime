@@ -1,35 +1,64 @@
 using UnityEngine;
+using Utils.Events;
+using Character.Modules.Animation.Data;
+using Character.Modules.Animation.Events;
 
 namespace Character.Modules.Animation
 {
     public class AnimationModule : MonoBehaviour
     {
-        private bool _isRunning;
-        
-        [Header("Animation Keys")] 
-        [SerializeField] private string _inputKey;
+        [Header("Configuration")]
+        [SerializeField] protected Animator _animator;
 
-        [Header("Animation Params")] 
-        [SerializeField] private float _movementModifier;
-        [SerializeField] private float _runModifier;
+        [Space, SerializeField] private AnimationParamsDataBase _animationParamsDataBase;
 
-        private float _currentModifier = 1;
+        private EventBus _animationEventBus;
 
-        [SerializeField] private float _smoothStep;
-        
-        [Space, SerializeField] protected Animator _animator;
-        
-        public void SetMovement(float input)
+        public void Initialize(EventBus animationEventBus)
         {
-            _currentModifier =
-                Mathf.SmoothStep(_currentModifier, _isRunning ? _runModifier : _movementModifier, _smoothStep);
+            _animationEventBus = animationEventBus;
             
-            _animator.SetFloat(_inputKey, input * _currentModifier);
+            _animationEventBus.Subscribe<AnimationParamEvent>(HandleAnimationParamEvent);
         }
 
-        public void SetRunning(bool isRunning)
+        private void OnDestroy()
         {
-            _isRunning = isRunning;
+            _animationEventBus.Unsubscribe<AnimationParamEvent>(HandleAnimationParamEvent);
+        }
+
+        private void HandleAnimationParamEvent(AnimationParamEvent animationParamEvent)
+        {
+            if (!_animationParamsDataBase.AnimationParamSetups.TryGetValue(animationParamEvent.AnimationParamId, out var animationParamSetup))
+            {
+                Debug.LogWarning($"Warning: The Animation Params Data Base {_animationParamsDataBase} doesn't contains any param with id:{animationParamEvent.AnimationParamId}");
+                
+                return;
+            }
+            
+            var paramType = animationParamSetup.Type;
+
+            switch (paramType)
+            {
+                case ParamType.Bool:
+                    _animator.SetBool(animationParamSetup.Name, (bool)animationParamEvent.Value);
+                    break;
+                
+                case ParamType.Float:
+                    _animator.SetFloat(animationParamSetup.Name, (float)animationParamEvent.Value);
+                    break;
+                
+                case ParamType.Int:
+                    _animator.SetInteger(animationParamSetup.Name, (int)animationParamEvent.Value);
+                    break;
+                
+                case ParamType.Trigger:
+                    _animator.SetTrigger(animationParamSetup.Name);
+                    break;
+                
+                default:
+                    Debug.LogWarning($"Warning: Strange ParamType: {paramType}");
+                    break;
+            }
         }
     }
 }

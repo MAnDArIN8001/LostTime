@@ -31,7 +31,7 @@ namespace Utils.Events
             
             if (events is not List<Action<T>> eventsList)
             {
-                Debug.LogWarning($"The Event Bus {this} cant cast {events} to Action<{typeof(T)}>");
+                Debug.LogWarning($"The Bus {this} cant cast {events} to Action<{typeof(T)}>");
                 
                 return;
             }

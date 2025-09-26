@@ -1,9 +1,11 @@
 using Character.Modules.Animation;
+using Character.Modules.Animation.Facade;
 using FSM;
 using HFSM;
 using UnityEngine;
 using Character.Modules.Movement;
 using Character.Modules.Rotation;
+using Loot.Data;
 
 namespace Character.States
 {
@@ -15,19 +17,20 @@ namespace Character.States
 
         private readonly RotationModule _rotationModule;
         private readonly MovementModule _movementModule;
-        protected readonly AnimationModule _animationModule;
+        
+        protected readonly IAnimationFacade _animationModule;
 
         private readonly MainInput _mainInput;
 
         private float _movementAnimationMagnitude;
         
-        public CharacterMovementState(StateType stateType, float movementSpeed, MainInput mainInput, MovementModule movementModule, AnimationModule animationModule, RotationModule rotationModule, Transform camera) : base(stateType)
+        public CharacterMovementState(StateType stateType, float movementSpeed, MainInput mainInput, MovementModule movementModule, IAnimationFacade animationFacade, RotationModule rotationModule, Transform camera) : base(stateType)
         {
             _mainInput = mainInput;
             _movementSpeed = movementSpeed;
             _rotationModule = rotationModule;
             _movementModule = movementModule;
-            _animationModule = animationModule;
+            _animationModule = animationFacade;
             _camera = camera;
         }
 
@@ -41,7 +44,7 @@ namespace Character.States
             _rotationModule.Rotate(direction);
             
             _movementModule.Move(_movementSpeed, direction.normalized);
-            _animationModule.SetMovement(_movementAnimationMagnitude);
+            _animationModule.Set(CharacterAnimationKeys.Movement, _movementAnimationMagnitude);
         }
 
         private Vector3 ComputeMovementFromInput(Vector2 input)
