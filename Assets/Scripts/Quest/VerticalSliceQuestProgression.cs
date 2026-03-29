@@ -72,6 +72,7 @@ namespace Quest
         private SealObjective[] _runtimeSeals = Array.Empty<SealObjective>();
 
         public string CurrentObjectiveText => GetObjectiveText(_currentStep);
+        public QuestStep CurrentStep => _currentStep;
 
         public event Action<string> ObjectiveChanged;
         public event Action Completed;
