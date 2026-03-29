@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c7d49c6139b4c078cc7c0edab5a727b, type: 3}
   m_Name: RopeItemSetup
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 
-  <Name>k__BackingField: 
+  <Id>k__BackingField: 47c96689-109e-4596-814e-552d9c3339a7
+  <Name>k__BackingField: Roupe
   <Icon>k__BackingField: {fileID: 0}

@@ -3,7 +3,7 @@ namespace Loot.Data
 {
     public static class CharacterAnimationKeys
     {
-        public const string Movement = "0a88b11a-b623-4382-afee-fb1252dd69ac";
-        public const string Runing = "37c042e3-e127-472e-8f40-26c64bfa17e5";
+        public const string Movement = "955ba135-61dc-4512-95d8-71555bed7025";
+        public const string Runing = "96ae04f9-4e6c-489f-b40e-0f85576104e7";
     }
 }

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c7d49c6139b4c078cc7c0edab5a727b, type: 3}
   m_Name: BottleItemSetup
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 
-  <Name>k__BackingField: 
+  <Id>k__BackingField: 1269be94-d39d-4974-884d-ac928c8e5886
+  <Name>k__BackingField: Bottle
   <Icon>k__BackingField: {fileID: 0}

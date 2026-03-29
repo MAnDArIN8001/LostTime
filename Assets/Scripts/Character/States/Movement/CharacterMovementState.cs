@@ -47,6 +47,13 @@ namespace Character.States
             _animationModule.Set(CharacterAnimationKeys.Movement, _movementAnimationMagnitude);
         }
 
+        public override void Exit()
+        {
+            _animationModule.Set(CharacterAnimationKeys.Movement, 0f);
+            
+            base.Exit();
+        }
+
         private Vector3 ComputeMovementFromInput(Vector2 input)
         {
             var bodyForward = _movementModule.Root.forward;

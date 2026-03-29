@@ -21,7 +21,9 @@ namespace Character.Modules.Movement.Variants
         private Vector3 _velocityRef;
 
         public override float MovementSpeed => _currentSpeed;
+        
         public override Vector3 Velocity => _currentVelocity;
+        
         public override Transform Root => _characterController.transform;
 
         public override void Move(float targetSpeed, Vector3 direction)
@@ -50,6 +52,14 @@ namespace Character.Modules.Movement.Variants
             _currentVelocity.y = _verticalVelocity;
 
             _characterController.Move(_currentVelocity * Time.deltaTime);
+        }
+
+        public override void Stop()
+        {
+            _currentSpeed = 0;
+            _currentVelocity = Vector3.zero;
+
+            _characterController.Move(_currentVelocity);
         }
     }
 }

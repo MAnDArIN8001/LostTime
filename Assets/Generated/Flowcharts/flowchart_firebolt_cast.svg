@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="3000" viewBox="0 0 1600 3000">
+  <defs>
+    <style>
+      .line { stroke: #111; stroke-width: 3; fill: none; }
+      .shape { stroke: #111; stroke-width: 3; fill: #fff; }
+      .txt { font-family: Arial, Helvetica, sans-serif; font-size: 26px; fill: #111; text-anchor: middle; dominant-baseline: middle; }
+      .small { font-size: 22px; }
+      .title { font-size: 34px; font-weight: 700; }
+      .label { font-size: 22px; font-weight: 700; }
+    </style>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <text x="800" y="60" class="txt title">Блок-схема 2. Каст и полет заклинания Firebolt</text>
+
+  <ellipse cx="800" cy="130" rx="150" ry="48" class="shape"/>
+  <text x="800" y="130" class="txt">Начало</text>
+
+  <line x1="800" y1="178" x2="800" y2="240" class="line" marker-end="url(#arrow2)"/>
+
+  <polygon points="590,240 1010,240 970,330 550,330" class="shape"/>
+  <text x="800" y="285" class="txt">Игрок нажимает кнопку Cast</text>
+
+  <line x1="800" y1="330" x2="800" y2="395" class="line" marker-end="url(#arrow2)"/>
+
+  <polygon points="800,395 1030,485 800,575 570,485" class="shape"/>
+  <text x="800" y="450" class="txt small">Разрешен вход</text>
+  <text x="800" y="480" class="txt small">в состояние атаки:</text>
+  <text x="800" y="510" class="txt small">`_spellCaster.CanCast`?</text>
+
+  <text x="1065" y="460" class="txt label">Да</text>
+  <text x="525" y="460" class="txt label">Нет</text>
+
+  <line x1="570" y1="485" x2="260" y2="485" class="line"/>
+  <line x1="260" y1="485" x2="260" y2="2230" class="line"/>
+  <line x1="260" y1="2230" x2="800" y2="2230" class="line" marker-end="url(#arrow2)"/>
+
+  <line x1="800" y1="575" x2="800" y2="650" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="540" y="650" width="520" height="100" rx="6" class="shape"/>
+  <text x="800" y="690" class="txt small">Войти в `CharacterCastState`,</text>
+  <text x="800" y="725" class="txt small">остановить перемещение</text>
+
+  <line x1="800" y1="750" x2="800" y2="825" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="520" y="825" width="560" height="100" rx="6" class="shape"/>
+  <text x="800" y="865" class="txt small">Вызвать `TryCast()`</text>
+  <text x="800" y="900" class="txt small">у `CharacterSpellCaster`</text>
+
+  <line x1="800" y1="925" x2="800" y2="995" class="line" marker-end="url(#arrow2)"/>
+
+  <polygon points="800,995 1050,1085 800,1175 550,1085" class="shape"/>
+  <text x="800" y="1045" class="txt small">Проверки пройдены:</text>
+  <text x="800" y="1075" class="txt small">setup, prefab, mana, cooldown,</text>
+  <text x="800" y="1105" class="txt small">запас маны?</text>
+
+  <text x="1085" y="1060" class="txt label">Да</text>
+  <text x="505" y="1060" class="txt label">Нет</text>
+
+  <line x1="550" y1="1085" x2="360" y2="1085" class="line"/>
+  <line x1="360" y1="1085" x2="360" y2="2230" class="line"/>
+  <line x1="360" y1="2230" x2="800" y2="2230" class="line" marker-end="url(#arrow2)"/>
+
+  <line x1="800" y1="1175" x2="800" y2="1245" class="line" marker-end="url(#arrow2)"/>
+
+  <polygon points="800,1245 1020,1335 800,1425 580,1335" class="shape"/>
+  <text x="800" y="1305" class="txt small">Списание маны</text>
+  <text x="800" y="1335" class="txt small">успешно?</text>
+
+  <text x="1055" y="1310" class="txt label">Да</text>
+  <text x="540" y="1310" class="txt label">Нет</text>
+
+  <line x1="580" y1="1335" x2="470" y2="1335" class="line"/>
+  <line x1="470" y1="1335" x2="470" y2="2230" class="line"/>
+  <line x1="470" y1="2230" x2="800" y2="2230" class="line" marker-end="url(#arrow2)"/>
+
+  <line x1="800" y1="1425" x2="800" y2="1495" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="470" y="1495" width="660" height="120" rx="6" class="shape"/>
+  <text x="800" y="1540" class="txt small">Создать снаряд в точке каста</text>
+  <text x="800" y="1575" class="txt small">и передать направление, скорость, урон, время жизни</text>
+
+  <line x1="800" y1="1615" x2="800" y2="1685" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="470" y="1685" width="660" height="100" rx="6" class="shape"/>
+  <text x="800" y="1725" class="txt small">Установить кулдаун 0.8 c</text>
+  <text x="800" y="1760" class="txt small">и отправить события `ManaSpent` и `SpellCast`</text>
+
+  <line x1="800" y1="1785" x2="800" y2="1855" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="500" y="1855" width="600" height="100" rx="6" class="shape"/>
+  <text x="800" y="1895" class="txt small">Снаряд летит вперед</text>
+  <text x="800" y="1930" class="txt small">со скоростью 18 до 3.5 секунд</text>
+
+  <line x1="800" y1="1955" x2="800" y2="2025" class="line" marker-end="url(#arrow2)"/>
+
+  <polygon points="800,2025 1050,2115 800,2205 550,2115" class="shape"/>
+  <text x="800" y="2080" class="txt small">Произошло столкновение</text>
+  <text x="800" y="2110" class="txt small">или вышло время жизни?</text>
+
+  <text x="1085" y="2090" class="txt label">Да</text>
+  <text x="515" y="2090" class="txt label">Нет</text>
+
+  <line x1="550" y1="2115" x2="1210" y2="2115" class="line"/>
+  <line x1="1210" y1="2115" x2="1210" y2="1905" class="line"/>
+  <line x1="1210" y1="1905" x2="1100" y2="1905" class="line" marker-end="url(#arrow2)"/>
+
+  <line x1="800" y1="2205" x2="800" y2="2280" class="line" marker-end="url(#arrow2)"/>
+
+  <polygon points="800,2280 1030,2370 800,2460 570,2370" class="shape"/>
+  <text x="800" y="2340" class="txt small">Цель реализует</text>
+  <text x="800" y="2370" class="txt small">`IDamageable`?</text>
+
+  <text x="1065" y="2345" class="txt label">Да</text>
+  <text x="530" y="2345" class="txt label">Нет</text>
+
+  <line x1="800" y1="2460" x2="800" y2="2535" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="540" y="2535" width="520" height="100" rx="6" class="shape"/>
+  <text x="800" y="2575" class="txt small">Применить 20 урона</text>
+  <text x="800" y="2610" class="txt small">к цели от имени кастера</text>
+
+  <line x1="1030" y1="2370" x2="1220" y2="2370" class="line"/>
+  <line x1="1220" y1="2370" x2="1220" y2="2690" class="line"/>
+  <line x1="1220" y1="2690" x2="800" y2="2690" class="line" marker-end="url(#arrow2)"/>
+
+  <line x1="800" y1="2635" x2="800" y2="2690" class="line" marker-end="url(#arrow2)"/>
+
+  <rect x="560" y="2690" width="480" height="100" rx="6" class="shape"/>
+  <text x="800" y="2730" class="txt small">Удалить снаряд</text>
+  <text x="800" y="2765" class="txt small">`Destroy(gameObject)`</text>
+
+  <line x1="800" y1="2790" x2="800" y2="2860" class="line" marker-end="url(#arrow2)"/>
+
+  <ellipse cx="800" cy="2910" rx="150" ry="48" class="shape"/>
+  <text x="800" y="2910" class="txt">Конец</text>
+</svg>

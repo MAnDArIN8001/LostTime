@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+
+- Don't write xml commets for public interfaces
+- Use .cursor\context\context.md as source of information about project
+- On end of any feachures write a step by step requrenments list, whet it requires to do in inspector, if any
+- Make the plan extremely concie. Sacrifiece grammar for the sake of concision.
+- At the end of each plan, give me a list of unresolved questions, if any.

@@ -8,11 +8,13 @@ namespace FSM
         Jump,
         Aim, 
         Attack,
+        Looting,
 
         #region Scope
 
         Movement,
         Attacking,
+        Communication
 
         #endregion
     }

@@ -11,5 +11,7 @@ namespace Character.Modules.Movement
         public abstract Transform Root { get; }
         
         public abstract void Move(float speed, Vector3 direction);
+
+        public abstract void Stop();
     }
 }

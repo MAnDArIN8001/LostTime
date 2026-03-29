@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Loot.Data
 {
-    [UnityEngine.CreateAssetMenu(fileName = "NewItemSetup", menuName = "Gameplay/Items/Item Setup", order = 0)]
+    [CreateAssetMenu(fileName = "NewItemSetup", menuName = "Gameplay/Items/Item Setup", order = 0)]
     public class ItemSetup : ScriptableObject
     {
         [field: SerializeField] public string Id { get; private set; }
