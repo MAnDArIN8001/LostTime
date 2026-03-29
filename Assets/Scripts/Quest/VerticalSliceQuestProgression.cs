@@ -42,8 +42,9 @@ namespace Quest
             TalkToMentor = 0,
             RestoreSeals = 1,
             UnlockArena = 2,
-            ReturnToMentor = 3,
-            Completed = 4,
+            DefeatGuardian = 3,
+            ReturnToMentor = 4,
+            Completed = 5,
         }
 
         [Header("Quest Targets")]
@@ -59,9 +60,12 @@ namespace Quest
         [Header("Arena Unlock")]
         [SerializeField] private GameObject[] _arenaUnlockTargets = Array.Empty<GameObject>();
         [SerializeField, Min(0f)] private float _arenaUnlockDelay = 1.5f;
+        [Header("Guardian")]
+        [SerializeField] private MonoBehaviour _guardianEncounter;
 
         private QuestStep _currentStep;
         private bool _isArenaUnlocked;
+        private bool _bossCleared;
         private int _restoredSealCount;
         private Coroutine _unlockArenaRoutine;
         private readonly HashSet<int> _restoredSealIndices = new();
@@ -122,8 +126,15 @@ namespace Quest
                 _mentorTarget.Interacted += OnMentorInteracted;
             }
 
+            var guardian = GuardianEncounter;
+            if (guardian != null)
+            {
+                guardian.Died += OnGuardianDied;
+            }
+
             _currentStep = QuestStep.TalkToMentor;
             _isArenaUnlocked = false;
+            _bossCleared = false;
             _restoredSealCount = 0;
             _restoredSealIndices.Clear();
             NotifyObjectiveChanged();
@@ -134,6 +145,12 @@ namespace Quest
             if (_mentorTarget != null)
             {
                 _mentorTarget.Interacted -= OnMentorInteracted;
+            }
+
+            var guardian = GuardianEncounter;
+            if (guardian != null)
+            {
+                guardian.Died -= OnGuardianDied;
             }
 
             for (var i = 0; i < _runtimeSeals.Length; i++)
@@ -194,6 +211,24 @@ namespace Quest
             EncounterCleared?.Invoke(sealIndex, GetConfiguredSealCount());
         }
 
+        private IEncounterEnemy GuardianEncounter => _guardianEncounter as IEncounterEnemy;
+
+        private void OnGuardianDied(IEncounterEnemy encounter)
+        {
+            if (_currentStep != QuestStep.DefeatGuardian || _bossCleared)
+            {
+                return;
+            }
+
+            if (_guardianEncounter == null || !ReferenceEquals(encounter, GuardianEncounter))
+            {
+                return;
+            }
+
+            _bossCleared = true;
+            SetStep(QuestStep.ReturnToMentor);
+        }
+
         private void OnSealInteracted(IInteractable interactable, GameObject interactor)
         {
             if (_currentStep != QuestStep.RestoreSeals)
@@ -246,6 +281,11 @@ namespace Quest
 
             NotifyObjectiveChanged();
             QuestStepAdvanced?.Invoke(_currentStep);
+
+            if (_currentStep == QuestStep.DefeatGuardian)
+            {
+                TryAdvanceIfGuardianAlreadyDead();
+            }
         }
 
         private void ActivateSealEncounters()
@@ -359,6 +399,18 @@ namespace Quest
             _isArenaUnlocked = true;
             ArenaUnlocked?.Invoke();
             _unlockArenaRoutine = null;
+            SetStep(QuestStep.DefeatGuardian);
+        }
+
+        private void TryAdvanceIfGuardianAlreadyDead()
+        {
+            var encounter = GuardianEncounter;
+            if (encounter == null || !encounter.IsDead || _bossCleared)
+            {
+                return;
+            }
+
+            _bossCleared = true;
             SetStep(QuestStep.ReturnToMentor);
         }
 
@@ -396,7 +448,9 @@ namespace Quest
                 QuestStep.TalkToMentor => "Talk to the mentor",
                 QuestStep.RestoreSeals => $"Restore seals ({_restoredSealCount}/{GetConfiguredSealCount()})",
                 QuestStep.UnlockArena => "The arena is unlocking...",
+                QuestStep.DefeatGuardian => "Defeat the guardian",
                 QuestStep.ReturnToMentor => "Return to the mentor",
+                QuestStep.Completed => "Trial complete",
                 _ => "Trial complete",
             };
         }
