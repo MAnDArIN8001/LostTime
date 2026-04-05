@@ -80,6 +80,11 @@ namespace Character
         private void InitializeMovementStateMachine()
         {
             var movementState = new MovementHierarchicalState(StateType.Movement, StateType.Walk, _movementModule);
+            var aimState = new CharacterAimState(
+                StateType.Aim,
+                _movementModule,
+                _bodyRotationModule,
+                _camera);
             var castState = new CharacterCastState(
                 StateType.Attack,
                 _movementModule,
@@ -101,17 +106,22 @@ namespace Character
             {
                 { idleState.StateType, idleState },
                 { movementState.StateType, movementState },
+                { aimState.StateType, aimState },
                 { castState.StateType, castState },
             };
 
             var globalTransitions = new List<StateTransition>()
             {
+                new StateTransition(StateType.Idle, StateType.Aim, IsAimPressed),
                 new StateTransition(StateType.Idle, StateType.Movement, () => ReadInputValues().magnitude > 0.1f),
+                new StateTransition(StateType.Movement, StateType.Aim, IsAimPressed),
                 new StateTransition(StateType.Movement, StateType.Idle, () => _movementModule.Velocity.magnitude <= 0.1f && _movementModule.MovementSpeed <= 0.1f),
-                new StateTransition(StateType.Idle, StateType.Attack, CanEnterCastState),
-                new StateTransition(StateType.Movement, StateType.Attack, CanEnterCastState),
-                new StateTransition(StateType.Attack, StateType.Movement, () => castState.IsLockFinished && ReadInputValues().magnitude > 0.1f),
-                new StateTransition(StateType.Attack, StateType.Idle, () => castState.IsLockFinished && ReadInputValues().magnitude <= 0.1f),
+                new StateTransition(StateType.Aim, StateType.Attack, CanCastFromAim),
+                new StateTransition(StateType.Aim, StateType.Movement, () => !IsAimPressed() && ReadInputValues().magnitude > 0.1f),
+                new StateTransition(StateType.Aim, StateType.Idle, () => !IsAimPressed() && ReadInputValues().magnitude <= 0.1f),
+                new StateTransition(StateType.Attack, StateType.Aim, () => castState.IsLockFinished && IsAimPressed()),
+                new StateTransition(StateType.Attack, StateType.Movement, () => castState.IsLockFinished && !IsAimPressed() && ReadInputValues().magnitude > 0.1f),
+                new StateTransition(StateType.Attack, StateType.Idle, () => castState.IsLockFinished && !IsAimPressed() && ReadInputValues().magnitude <= 0.1f),
             };
 
             _movementStateMachine = new StateMachine(globalStates, globalTransitions, StateType.Idle);
@@ -119,7 +129,7 @@ namespace Character
 
         private Vector2 ReadInputValues() => _mainInput.Character.Movement.ReadValue<Vector2>();
 
-        private bool CanEnterCastState() =>
+        private bool CanCastFromAim() =>
             _mainInput.Character.Cast.WasPerformedThisFrame() &&
             IsAimPressed() &&
             _spellCaster != null &&
