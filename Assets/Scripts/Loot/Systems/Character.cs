@@ -10,6 +10,7 @@ using Character.Modules.Rotation;
 using Character.Setup;
 using Character.States.Combat;
 using Combat;
+using Loot.Data;
 using Loot.Inventory;
 using Loot.Systems;
 using Utils.Events;
@@ -79,7 +80,13 @@ namespace Character
         private void InitializeMovementStateMachine()
         {
             var movementState = new MovementHierarchicalState(StateType.Movement, StateType.Walk, _movementModule);
-            var castState = new CharacterCastState(StateType.Attack, _movementModule, _castLockDuration, TryCastSpell);
+            var castState = new CharacterCastState(
+                StateType.Attack,
+                _movementModule,
+                _castLockDuration,
+                TryCastSpell,
+                _animationFacade,
+                CharacterAnimationKeys.SpellCast);
             
             movementState.AddChildState(new CharacterMovementState(StateType.Walk, _characterSetup.WalkSpeed, _mainInput, _movementModule, _animationFacade, _bodyRotationModule, _camera));
             movementState.AddStateTransition(new StateTransition(StateType.Run, StateType.Walk, () => _mainInput.Character.RunAction.WasPerformedThisFrame()));
