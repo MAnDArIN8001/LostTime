@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <ItemSetup>k__BackingField: {fileID: 11400000, guid: b881f01170cf4f9a9ec487a4a9f70dd2, type: 2}
-  <InteractionPrompt>k__BackingField: Absorb mana
+  <InteractionPrompt>k__BackingField: Take mana orb
 --- !u!114 &4962212864839507307
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,5 +110,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _collectOnTrigger: 1
   _healthRestore: 0
-  _manaRestore: 30
+  _manaRestore: 35
   _coinReward: 0

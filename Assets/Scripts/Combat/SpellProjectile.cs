@@ -1,9 +1,14 @@
 using UnityEngine;
+using System;
 
 namespace Combat
 {
     public class SpellProjectile : MonoBehaviour
     {
+        [Header("Impact Feedback")]
+        [SerializeField] private GameObject _impactVfxPrefab;
+        [SerializeField] private AudioClip _impactClip;
+
         private Vector3 _direction;
         private float _speed;
         private float _damage;
@@ -11,6 +16,8 @@ namespace Combat
         private float _spawnTime;
         private GameObject _caster;
         private bool _initialized;
+
+        public event Action<Collider> Hit;
 
         public void Initialize(Vector3 direction, float speed, float damage, float lifetime, GameObject caster)
         {
@@ -50,7 +57,22 @@ namespace Combat
                 damageable.ApplyDamage(_damage, _caster);
             }
 
+            Hit?.Invoke(other);
+            PlayImpactFeedback(transform.position);
             Destroy(gameObject);
+        }
+
+        private void PlayImpactFeedback(Vector3 position)
+        {
+            if (_impactVfxPrefab != null)
+            {
+                Instantiate(_impactVfxPrefab, position, Quaternion.identity);
+            }
+
+            if (_impactClip != null)
+            {
+                AudioSource.PlayClipAtPoint(_impactClip, position);
+            }
         }
     }
 }

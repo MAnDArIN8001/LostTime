@@ -446,11 +446,11 @@ namespace Quest
         {
             return step switch
             {
-                QuestStep.TalkToMentor => "Talk to the mentor",
-                QuestStep.RestoreSeals => $"Restore seals ({_restoredSealCount}/{GetConfiguredSealCount()})",
+                QuestStep.TalkToMentor => "Talk to the mentor to begin the trial",
+                QuestStep.RestoreSeals => $"Restore all anomaly seals ({_restoredSealCount}/{GetConfiguredSealCount()})",
                 QuestStep.UnlockArena => "The arena is unlocking...",
-                QuestStep.DefeatGuardian => "Defeat the guardian",
-                QuestStep.ReturnToMentor => "Return to the mentor",
+                QuestStep.DefeatGuardian => "Defeat the trial guardian in the arena",
+                QuestStep.ReturnToMentor => "Return to the mentor to finish the trial",
                 QuestStep.Completed => "Trial complete",
                 _ => "Trial complete",
             };

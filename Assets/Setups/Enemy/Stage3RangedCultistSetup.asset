@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fbe781fe1644996a4fdef4d766f0efe, type: 3}
   m_Name: Stage3RangedCultistSetup
   m_EditorClassIdentifier: 
-  <MaxHealth>k__BackingField: 35
+  <MaxHealth>k__BackingField: 34
   <MoveSpeed>k__BackingField: 3.2
   <DetectionDistance>k__BackingField: 15
   <PreferredRange>k__BackingField: 8
   <MinimumRange>k__BackingField: 4.5
-  <ProjectileDamage>k__BackingField: 9
+  <ProjectileDamage>k__BackingField: 8
   <ProjectileSpeed>k__BackingField: 16
   <ProjectileLifetime>k__BackingField: 3
-  <AttackCooldown>k__BackingField: 1.2
+  <AttackCooldown>k__BackingField: 1.35
   <ProjectilePrefab>k__BackingField: {fileID: 1145963776098755952, guid: 1aeaa8554c1343e4b972f0d80f19544d, type: 3}

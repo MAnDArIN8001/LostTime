@@ -5,25 +5,33 @@ using UnityEngine;
 
 namespace Enemy
 {
+    public enum GuardianCyclePhase
+    {
+        VolleyTelegraph = 0,
+        VolleyActive = 1,
+        VolleyCooldown = 2,
+        ZoneTelegraph = 3,
+        ZoneActive = 4,
+        ZoneCooldown = 5,
+    }
+
     public class TrialGuardianEncounter : MonoBehaviour, IDamageable, IEncounterEnemy
     {
-        private enum CyclePhase
-        {
-            VolleyTelegraph,
-            VolleyActive,
-            VolleyCooldown,
-            ZoneTelegraph,
-            ZoneActive,
-            ZoneCooldown
-        }
-
         [SerializeField] private GuardianBossSetup _setup;
         [SerializeField] private Transform _target;
         [SerializeField] private Transform _projectileOrigin;
 
+        [Header("Feedback")]
+        [SerializeField] private AudioSource _audioSource;
+        [SerializeField] private AudioClip _volleyTelegraphClip;
+        [SerializeField] private AudioClip _zoneTelegraphClip;
+        [SerializeField] private AudioClip _phaseSwitchClip;
+        [SerializeField] private GameObject _volleyTelegraphVfxPrefab;
+        [SerializeField] private GameObject _zoneTelegraphVfxPrefab;
+
         private float _currentHealth;
         private bool _isDead;
-        private CyclePhase _phase;
+        private GuardianCyclePhase _phase;
         private float _phaseEnteredAt;
         private int _volleyShotsFired;
         private float _nextVolleyShotAt;
@@ -32,11 +40,12 @@ namespace Enemy
         public bool IsDead => _isDead;
 
         public event Action<IEncounterEnemy> Died;
+        public event Action<GuardianCyclePhase> PhaseChanged;
 
         private void Awake()
         {
             _currentHealth = _setup != null ? _setup.MaxHealth : 0f;
-            EnterPhase(CyclePhase.VolleyTelegraph);
+            EnterPhase(GuardianCyclePhase.VolleyTelegraph);
         }
 
         private void Update()
@@ -62,47 +71,47 @@ namespace Enemy
 
             switch (_phase)
             {
-                case CyclePhase.VolleyTelegraph:
+                case GuardianCyclePhase.VolleyTelegraph:
                     if (elapsedInPhase >= _setup.Volley.Timing.TelegraphDuration)
                     {
-                        EnterPhase(CyclePhase.VolleyActive);
+                        EnterPhase(GuardianCyclePhase.VolleyActive);
                     }
                     break;
 
-                case CyclePhase.VolleyActive:
+                case GuardianCyclePhase.VolleyActive:
                     TickVolleyActive();
                     if (elapsedInPhase >= _setup.Volley.Timing.ActiveDuration)
                     {
-                        EnterPhase(CyclePhase.VolleyCooldown);
+                        EnterPhase(GuardianCyclePhase.VolleyCooldown);
                     }
                     break;
 
-                case CyclePhase.VolleyCooldown:
+                case GuardianCyclePhase.VolleyCooldown:
                     if (elapsedInPhase >= _setup.Volley.Timing.CooldownAfter)
                     {
-                        EnterPhase(CyclePhase.ZoneTelegraph);
+                        EnterPhase(GuardianCyclePhase.ZoneTelegraph);
                     }
                     break;
 
-                case CyclePhase.ZoneTelegraph:
+                case GuardianCyclePhase.ZoneTelegraph:
                     if (elapsedInPhase >= _setup.Zone.Timing.TelegraphDuration)
                     {
-                        EnterPhase(CyclePhase.ZoneActive);
+                        EnterPhase(GuardianCyclePhase.ZoneActive);
                     }
                     break;
 
-                case CyclePhase.ZoneActive:
+                case GuardianCyclePhase.ZoneActive:
                     TickZoneActive();
                     if (elapsedInPhase >= _setup.Zone.Timing.ActiveDuration)
                     {
-                        EnterPhase(CyclePhase.ZoneCooldown);
+                        EnterPhase(GuardianCyclePhase.ZoneCooldown);
                     }
                     break;
 
-                case CyclePhase.ZoneCooldown:
+                case GuardianCyclePhase.ZoneCooldown:
                     if (elapsedInPhase >= _setup.Zone.Timing.CooldownAfter)
                     {
-                        EnterPhase(CyclePhase.VolleyTelegraph);
+                        EnterPhase(GuardianCyclePhase.VolleyTelegraph);
                     }
                     break;
             }
@@ -126,18 +135,20 @@ namespace Enemy
             Destroy(gameObject);
         }
 
-        private void EnterPhase(CyclePhase phase)
+        private void EnterPhase(GuardianCyclePhase phase)
         {
             _phase = phase;
             _phaseEnteredAt = Time.time;
+            PhaseChanged?.Invoke(phase);
+            PlayPhaseFeedback(phase);
 
             switch (phase)
             {
-                case CyclePhase.VolleyActive:
+                case GuardianCyclePhase.VolleyActive:
                     _volleyShotsFired = 0;
                     _nextVolleyShotAt = Time.time;
                     break;
-                case CyclePhase.ZoneActive:
+                case GuardianCyclePhase.ZoneActive:
                     _nextZoneTickAt = Time.time;
                     break;
             }
@@ -235,6 +246,52 @@ namespace Enemy
         {
             var player = FindFirstObjectByType<Character.Character>();
             _target = player != null ? player.transform : null;
+        }
+
+        private void PlayPhaseFeedback(GuardianCyclePhase phase)
+        {
+            switch (phase)
+            {
+                case GuardianCyclePhase.VolleyTelegraph:
+                    SpawnTelegraphVfx(_volleyTelegraphVfxPrefab);
+                    PlayAudio(_volleyTelegraphClip);
+                    break;
+                case GuardianCyclePhase.ZoneTelegraph:
+                    SpawnTelegraphVfx(_zoneTelegraphVfxPrefab);
+                    PlayAudio(_zoneTelegraphClip);
+                    break;
+                case GuardianCyclePhase.VolleyActive:
+                case GuardianCyclePhase.ZoneActive:
+                    PlayAudio(_phaseSwitchClip);
+                    break;
+            }
+        }
+
+        private void SpawnTelegraphVfx(GameObject prefab)
+        {
+            if (prefab == null)
+            {
+                return;
+            }
+
+            var spawnPosition = _target != null ? _target.position : transform.position;
+            Instantiate(prefab, spawnPosition, Quaternion.identity);
+        }
+
+        private void PlayAudio(AudioClip clip)
+        {
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (_audioSource != null)
+            {
+                _audioSource.PlayOneShot(clip);
+                return;
+            }
+
+            AudioSource.PlayClipAtPoint(clip, transform.position);
         }
 
 #if UNITY_EDITOR

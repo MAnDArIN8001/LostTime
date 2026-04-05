@@ -1934,7 +1934,7 @@ MonoBehaviour:
   _rotationModule: {fileID: 1745784281}
   _bodyRotationModule: {fileID: 22605589}
   _camera: {fileID: 346560754}
-  _castLockDuration: 0.3
+  _castLockDuration: 0.25
   _spellCaster: {fileID: 511379549}
   _interactionController: {fileID: 702497799}
 --- !u!114 &511379547
@@ -1949,8 +1949,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1c6b03c8aa24fa6a9dfd3d4f6ecf19a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxMana: 100
-  _manaRegenPerSecond: 5
+  _maxMana: 110
+  _manaRegenPerSecond: 7
 --- !u!114 &511379548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1963,7 +1963,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f4b44e0cd2e4f2ea04df6ec3b6654d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 100
+  _maxHealth: 115
 --- !u!114 &511379549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2584,7 +2584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1f5842ea4d14905a4f954f85bbce62d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interactionPrompt: Restore the seal
+  _interactionPrompt: Restore seal (after the fight)
   _singleUse: 1
   _consumeOnInteract: 1
   _onInteracted:
@@ -2693,7 +2693,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1f5842ea4d14905a4f954f85bbce62d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interactionPrompt: Talk to the mentor
+  _interactionPrompt: Talk to start trial
   _singleUse: 1
   _consumeOnInteract: 1
   _onInteracted:

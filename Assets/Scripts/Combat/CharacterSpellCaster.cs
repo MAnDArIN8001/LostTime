@@ -6,9 +6,15 @@ namespace Combat
 {
     public class CharacterSpellCaster : MonoBehaviour
     {
+        [Header("Spell Data")]
         [SerializeField] private ProjectileSpellSetup _spellSetup;
         [SerializeField] private CharacterMana _mana;
         [SerializeField] private Transform _castOrigin;
+
+        [Header("Feedback")]
+        [SerializeField] private AudioSource _audioSource;
+        [SerializeField] private AudioClip _castClip;
+        [SerializeField] private GameObject _castVfxPrefab;
 
         private float _nextCastAvailableAt;
 
@@ -44,10 +50,32 @@ namespace Combat
                 gameObject);
 
             _nextCastAvailableAt = Time.time + _spellSetup.Cooldown;
+            PlayCastFeedback(spawnOrigin.position, spawnOrigin.rotation);
 
             ManaSpent?.Invoke(new ManaSpentInfo(_spellSetup.ManaCost, _mana.CurrentMana, _mana.MaxMana));
             SpellCast?.Invoke(new SpellCastInfo(_spellSetup, projectile));
             return true;
+        }
+
+        private void PlayCastFeedback(Vector3 position, Quaternion rotation)
+        {
+            if (_castVfxPrefab != null)
+            {
+                Instantiate(_castVfxPrefab, position, rotation);
+            }
+
+            if (_castClip == null)
+            {
+                return;
+            }
+
+            if (_audioSource != null)
+            {
+                _audioSource.PlayOneShot(_castClip);
+                return;
+            }
+
+            AudioSource.PlayClipAtPoint(_castClip, position);
         }
     }
 

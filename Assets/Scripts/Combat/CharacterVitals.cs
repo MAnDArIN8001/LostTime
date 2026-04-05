@@ -14,6 +14,7 @@ namespace Combat
         public bool IsDead => _currentHealth <= 0f;
 
         public event Action<float, float> HealthChanged;
+        public event Action<float, GameObject> DamageTaken;
         public event Action Died;
 
         private void Awake()
@@ -30,6 +31,7 @@ namespace Combat
             }
 
             _currentHealth = Mathf.Max(0f, _currentHealth - damage);
+            DamageTaken?.Invoke(damage, damageSource);
             HealthChanged?.Invoke(_currentHealth, _maxHealth);
 
             if (_currentHealth <= 0f)

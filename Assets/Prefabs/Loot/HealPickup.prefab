@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <ItemSetup>k__BackingField: {fileID: 11400000, guid: 084c5349307b460895f6b884b0dc664f, type: 2}
-  <InteractionPrompt>k__BackingField: Use herb
+  <InteractionPrompt>k__BackingField: Take healing orb
 --- !u!114 &8169214219399473929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,6 +109,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _collectOnTrigger: 1
-  _healthRestore: 35
+  _healthRestore: 40
   _manaRestore: 0
   _coinReward: 0

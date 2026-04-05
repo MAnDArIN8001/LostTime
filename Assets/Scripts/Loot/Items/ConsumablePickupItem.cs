@@ -1,3 +1,4 @@
+using System;
 using Combat;
 using Loot.Systems;
 using UnityEngine;
@@ -14,7 +15,13 @@ namespace Loot.Items
         [SerializeField, Min(0f)] private float _manaRestore;
         [SerializeField, Min(0)] private int _coinReward;
 
+        [Header("Feedback")]
+        [SerializeField] private AudioClip _collectClip;
+        [SerializeField] private GameObject _collectVfxPrefab;
+
         private ITakable _takable;
+
+        public static event Action<ConsumablePickupItem, GameObject> Collected;
 
         private void Awake()
         {
@@ -44,6 +51,8 @@ namespace Loot.Items
             }
 
             ApplyPayload(interactor);
+            PlayCollectFeedback();
+            Collected?.Invoke(this, interactor);
             _takable.Take();
             return true;
         }
@@ -65,6 +74,19 @@ namespace Loot.Items
             if (_coinReward > 0)
             {
                 Debug.Log($"Collected coin reward: +{_coinReward}");
+            }
+        }
+
+        private void PlayCollectFeedback()
+        {
+            if (_collectVfxPrefab != null)
+            {
+                Instantiate(_collectVfxPrefab, transform.position, Quaternion.identity);
+            }
+
+            if (_collectClip != null)
+            {
+                AudioSource.PlayClipAtPoint(_collectClip, transform.position);
             }
         }
     }

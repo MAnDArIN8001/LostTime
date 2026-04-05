@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69ca6ba6de9e4f19a11ce31b8da6e95d, type: 3}
   m_Name: Stage2MeleeBeastSetup
   m_EditorClassIdentifier: 
-  <MaxHealth>k__BackingField: 50
+  <MaxHealth>k__BackingField: 48
   <MoveSpeed>k__BackingField: 3.8
   <DetectionDistance>k__BackingField: 11
   <AttackDistance>k__BackingField: 1.7
-  <Damage>k__BackingField: 12
-  <AttackCooldown>k__BackingField: 1.2
+  <Damage>k__BackingField: 10
+  <AttackCooldown>k__BackingField: 1.3

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a35ac8ca09d4698af9c732f0e99aad8, type: 3}
   m_Name: Stage3HeavyGolemSetup
   m_EditorClassIdentifier: 
-  <MaxHealth>k__BackingField: 95
+  <MaxHealth>k__BackingField: 88
   <MoveSpeed>k__BackingField: 2.1
   <DetectionDistance>k__BackingField: 10
   <AttackDistance>k__BackingField: 2
-  <Damage>k__BackingField: 24
-  <AttackCooldown>k__BackingField: 1.8
+  <Damage>k__BackingField: 18
+  <AttackCooldown>k__BackingField: 2
