@@ -83,6 +83,8 @@ namespace Character
             var castState = new CharacterCastState(
                 StateType.Attack,
                 _movementModule,
+                _bodyRotationModule,
+                _camera,
                 _castLockDuration,
                 TryCastSpell,
                 _animationFacade,
