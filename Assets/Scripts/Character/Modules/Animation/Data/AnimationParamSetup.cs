@@ -16,12 +16,14 @@ namespace Character.Modules.Animation.Data
 
         private void OnValidate()
         {
-            if (!string.IsNullOrEmpty(Id))
+            if (!string.IsNullOrWhiteSpace(Id))
             {
                 return;
             }
             
             Id = Guid.NewGuid().ToString();
+            
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 
 #endif

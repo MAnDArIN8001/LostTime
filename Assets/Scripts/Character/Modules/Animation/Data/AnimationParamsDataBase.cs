@@ -10,38 +10,67 @@ namespace Character.Modules.Animation.Data
     [CreateAssetMenu(fileName = "NewAnimationParamsDatabase", menuName = "Gameplay/Animation/Animation Param Data Base", order = 0)]
     public class AnimationParamsDataBase : ScriptableObject
     {
-        [SerializeField] private string _generatedClassName;
-        
-        [Space, SerializeField] private List<AnimationParamSetup> _animationParamsList;
+        [SerializeField] private List<AnimationParamSetup> _animationParamsList;
 
         private readonly Dictionary<string, AnimationParamSetup> _animationParamsDictionary = new();
 
         public IReadOnlyDictionary<string, AnimationParamSetup> AnimationParamSetups => _animationParamsDictionary;
-        
+
+        private void OnEnable()
+        {
+            RebuildDictionary();
+        }
+
 #if UNITY_EDITOR
-        
         private void OnValidate()
         {
-            var constPairs = new List<ConstPair>();
-            
-            _animationParamsDictionary.Clear();
-            
-            foreach (var animationParam in _animationParamsList)
-            {
-                _animationParamsDictionary.Add(animationParam.Id, animationParam);
-                
-                constPairs.Add(new ConstPair() { Id = animationParam.Id, Name = animationParam.Name});
-            }
+            RebuildDictionary();
         }
 
         [ContextMenu("Generate Key Class")]
         private void GenerateKeyClass()
         {
-            var constPairs = _animationParamsList.Select(animationParam => new ConstPair() { Id = animationParam.Id, Name = animationParam.Name }).ToList();
-            
-            ConstKeysGenerator.GenerateItemKeysClass(_generatedClassName, constPairs);
-        }
+            var settings = CodeGenerationSettingsProvider.GetOrDefault();
+            var generationTarget = settings.ResolveForSourceTypeName(
+                nameof(AnimationParamsDataBase),
+                "CharacterAnimationKeys");
+            var constPairs = (_animationParamsList ?? new List<AnimationParamSetup>())
+                .Where(param => param != null)
+                .Select(animationParam => new ConstPair { Id = animationParam.Id, Name = animationParam.Name })
+                .ToList();
 
+            ConstKeysGenerator.GenerateKeysClass(
+                generationTarget.ClassName,
+                constPairs,
+                generationTarget.OutputFolderPath,
+                generationTarget.NamespaceName);
+        }
 #endif
+
+        private void RebuildDictionary()
+        {
+            _animationParamsDictionary.Clear();
+
+            if (_animationParamsList == null)
+            {
+                return;
+            }
+
+            foreach (var animationParam in _animationParamsList)
+            {
+                if (animationParam == null || string.IsNullOrWhiteSpace(animationParam.Id))
+                {
+                    continue;
+                }
+
+                if (_animationParamsDictionary.ContainsKey(animationParam.Id))
+                {
+                    Debug.LogWarning($"Animation param id duplication detected and skipped: {animationParam.Id}", this);
+                    continue;
+                }
+
+                _animationParamsDictionary.Add(animationParam.Id, animationParam);
+            }
+        }
     }
 }

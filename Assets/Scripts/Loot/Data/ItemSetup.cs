@@ -15,7 +15,7 @@ namespace Loot.Data
 
         private void OnValidate()
         {
-            if (!string.IsNullOrEmpty(Id))
+            if (!string.IsNullOrWhiteSpace(Id))
             {
                 return;
             }
