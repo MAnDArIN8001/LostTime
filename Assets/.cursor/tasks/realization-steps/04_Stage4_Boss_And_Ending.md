@@ -47,10 +47,10 @@ Out:
   - interaction flow for final mentor talk through the same mark / ray / communication path
   - boss tuning in assets or serialized data, not hardcoded branches
 - Keep this work event-driven where needed:
-  - emit: boss phase changed, boss defeated, ending unlocked, trial completed
-  - listen: arena entered, all seals restored, boss hp threshold reached, mentor interaction completed
+  - emit: boss encounter started, pattern switched, boss defeated, ending unlocked, trial completed
+  - listen: arena entered, all seals restored, boss death confirmed, mentor interaction completed
 - Keep data-driven through:
-  - boss stats, attack timings, arena refs, ending text, UI refs, and reward copy in assets or serialized refs
+  - boss stats, pattern durations, telegraph/cooldowns, arena refs, ending text, UI refs, and reward copy in assets or serialized refs
 - Keep FSM-driven through:
   - cast windows, boss attack windows, player action locks, and communication gates
 - Rationale:
@@ -77,8 +77,8 @@ Explain how boss combat, boss death routing, ending unlock, and final mentor tal
 
 ### Signals
 
-- emit: boss started, boss phase changed, boss defeated, ending shown, trial completed
-- listen: arena entered, attack trigger, hp threshold crossed, boss death confirmed
+- emit: boss started, time-window pattern switched, boss defeated, ending shown, trial completed
+- listen: arena entered, attack trigger, pattern timer elapsed, boss death confirmed
 
 ### Scene/Inspector
 
@@ -96,33 +96,35 @@ Explain how boss combat, boss death routing, ending unlock, and final mentor tal
 
 ### Decision Log
 
-- chose: add climax only after the main loop is stable
-- avoided: building ending screens before boss outcome exists
-- why: keeps ending logic tied to real gameplay completion
+- chose: time-based pattern alternation with serialized durations/cooldowns and a death-gated quest step before mentor return
+- avoided: HP-threshold phase transitions, summons/add waves, and direct boss death to quest completion
+- why: keeps pattern readability consistent, keeps ending gated by real boss kill plus final mentor interaction, and reuses stable quest/interaction seams
 
 ## Acceptance Checks
 
 - guardian fight is playable and beatable
 - boss has at least 2 distinct readable attack patterns
-- boss defeat unlocks the ending only once and through stable progression flow
+- boss pattern switching is timer-driven (not HP-driven)
+- boss defeat unlocks return-to-mentor only once, then completion only after mentor interaction
 - final mentor payoff and win state are reachable in one run
 - docs cover boss data, signals, scene wiring, and playable validation
 
 ## Requirements
 
 1. create one guardian boss with minimum 2 attack patterns.
-2. route boss flow through current combat and quest seams.
-3. wire boss death into ending progression and mentor payoff.
-4. end with one complete playable victory path.
+2. schedule pattern alternation by elapsed time (serialized durations/cooldowns), not HP thresholds.
+3. route boss flow through current combat and quest seams.
+4. wire boss death to unlock return-to-mentor, then mentor payoff to complete the trial.
+5. end with one complete playable victory path.
 
 ## Editor Configuration
 
 1. place boss arena trigger and boss prefab.
-2. wire boss death event to quest progression.
-3. assign ending UI panel and mentor final dialog.
-4. verify arena gate, intro trigger, and win-state refs.
+2. assign guardian setup asset fields for health, pattern telegraph/active durations, and cooldowns.
+3. wire boss death event to quest progression (unlock return-to-mentor step only).
+4. assign ending UI panel and mentor final dialog.
+5. verify arena gate, intro trigger, and win-state refs.
 
 ## Unresolved Questions
 
-- should the boss use summons or stay pure pattern pressure only
-- should the ending go straight to win UI or require explicit mentor return
+- none
