@@ -1,4 +1,5 @@
 using System;
+using Character.Modules.Movement;
 using Combat.Data;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Combat
         [SerializeField] private ProjectileSpellSetup _spellSetup;
         [SerializeField] private CharacterMana _mana;
         [SerializeField] private Transform _castOrigin;
+        [SerializeField] private Transform _forwardOverride;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource _audioSource;
@@ -41,16 +43,20 @@ namespace Combat
             }
 
             var spawnOrigin = _castOrigin != null ? _castOrigin : transform;
-            var projectile = Instantiate(_spellSetup.ProjectilePrefab, spawnOrigin.position, spawnOrigin.rotation);
+            var forwardTransform = ResolveProjectileForwardTransform();
+            var shootDirection = forwardTransform.forward;
+            var shootRotation = Quaternion.LookRotation(shootDirection, Vector3.up);
+
+            var projectile = Instantiate(_spellSetup.ProjectilePrefab, spawnOrigin.position, shootRotation);
             projectile.Initialize(
-                spawnOrigin.forward,
+                shootDirection,
                 _spellSetup.ProjectileSpeed,
                 _spellSetup.Damage,
                 _spellSetup.ProjectileLifetime,
                 gameObject);
 
             _nextCastAvailableAt = Time.time + _spellSetup.Cooldown;
-            PlayCastFeedback(spawnOrigin.position, spawnOrigin.rotation);
+            PlayCastFeedback(spawnOrigin.position, shootRotation);
 
             ManaSpent?.Invoke(new ManaSpentInfo(_spellSetup.ManaCost, _mana.CurrentMana, _mana.MaxMana));
             SpellCast?.Invoke(new SpellCastInfo(_spellSetup, projectile));
@@ -76,6 +82,22 @@ namespace Combat
             }
 
             AudioSource.PlayClipAtPoint(_castClip, position);
+        }
+
+        private Transform ResolveProjectileForwardTransform()
+        {
+            if (_forwardOverride != null)
+            {
+                return _forwardOverride;
+            }
+
+            var movement = GetComponentInParent<MovementModule>();
+            if (movement != null)
+            {
+                return movement.Root;
+            }
+
+            return transform;
         }
     }
 
