@@ -1,5 +1,10 @@
 # Stage 5 Agent Prompt: Polish
 
+> Legacy note:
+> This prompt may reference polish targets from the older combat-first slice.
+> Read `Assets/.cursor/context/context.md` first.
+> If any section conflicts with the current courtyard `push / pull / press` direction, the context file wins.
+
 ## Mission
 
 Make the MVP readable, stable, and presentable for diploma review. Improve feedback, clarity, balance, onboarding, and demo reliability without reopening scope.

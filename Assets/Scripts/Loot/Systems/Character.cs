@@ -10,6 +10,7 @@ using Character.Modules.Rotation;
 using Character.Setup;
 using Character.States.Combat;
 using Combat;
+using Gameplay.Interaction.Character;
 using Loot.Data;
 using Loot.Inventory;
 using Loot.Systems;
@@ -38,6 +39,8 @@ namespace Character
         [Header("Combat")]
         [SerializeField, Min(0f)] private float _castLockDuration = 0.3f;
         [SerializeField] private CharacterSpellCaster _spellCaster;
+        [SerializeField] private string _castAnimationStateName = "SpellCastAnimation";
+        [SerializeField, Min(0)] private int _castAnimationLayer = 0;
 
         [Header("Interaction")]
         [SerializeField] private InteractionController _interactionController;
@@ -46,6 +49,8 @@ namespace Character
         private IAnimationFacade _animationFacade;
         
         private StateMachine _movementStateMachine;
+        private CharacterCastState _castState;
+        private CharacterInteractionDriver _interactionDriver;
 
         private InventoryService _inventoryService;
 
@@ -57,6 +62,7 @@ namespace Character
             _animationEventBus = new EventBus();
             _animationFacade = new AnimationFacade(_animationEventBus);
             _aimAction = _mainInput.FindAction("Character/Aim");
+            _interactionDriver = new CharacterInteractionDriver(_interactionController);
             
             _animationModule.Initialize(_animationEventBus);
 
@@ -66,15 +72,22 @@ namespace Character
         private void Update()
         {
             var mouseInput = _mainInput.Character.CameraMovement.ReadValue<Vector2>();
+            var movementInput = _mainInput.Character.Movement.ReadValue<Vector2>();
+            var castRequested = _mainInput.Character.Cast.WasPerformedThisFrame();
+            var isAimPressed = IsAimPressed();
             
             _rotationModule.Rotate(mouseInput);
             
             _movementStateMachine.Update();
 
-            if (_mainInput.Character.CommunicationAction.WasPerformedThisFrame())
-            {
-                _interactionController?.TryInteract(gameObject);
-            }
+            var interactionFrameInput = new CharacterInteractionFrameInput(
+                _mainInput.Character.CommunicationAction.WasPerformedThisFrame(),
+                gameObject,
+                movementInput,
+                isAimPressed,
+                castRequested);
+
+            _interactionDriver?.Tick(interactionFrameInput);
         }
 
         private void InitializeMovementStateMachine()
@@ -85,13 +98,14 @@ namespace Character
                 _movementModule,
                 _bodyRotationModule,
                 _camera);
-            var castState = new CharacterCastState(
+            _castState = new CharacterCastState(
                 StateType.Attack,
                 _movementModule,
                 _bodyRotationModule,
                 _camera,
                 _castLockDuration,
                 TryCastSpell,
+                IsCastAnimationFinished,
                 _animationFacade,
                 CharacterAnimationKeys.SpellCast);
             
@@ -107,7 +121,7 @@ namespace Character
                 { idleState.StateType, idleState },
                 { movementState.StateType, movementState },
                 { aimState.StateType, aimState },
-                { castState.StateType, castState },
+                { _castState.StateType, _castState },
             };
 
             var globalTransitions = new List<StateTransition>()
@@ -119,9 +133,9 @@ namespace Character
                 new StateTransition(StateType.Aim, StateType.Attack, CanCastFromAim),
                 new StateTransition(StateType.Aim, StateType.Movement, () => !IsAimPressed() && ReadInputValues().magnitude > 0.1f),
                 new StateTransition(StateType.Aim, StateType.Idle, () => !IsAimPressed() && ReadInputValues().magnitude <= 0.1f),
-                new StateTransition(StateType.Attack, StateType.Aim, () => castState.IsLockFinished && IsAimPressed()),
-                new StateTransition(StateType.Attack, StateType.Movement, () => castState.IsLockFinished && !IsAimPressed() && ReadInputValues().magnitude > 0.1f),
-                new StateTransition(StateType.Attack, StateType.Idle, () => castState.IsLockFinished && !IsAimPressed() && ReadInputValues().magnitude <= 0.1f),
+                new StateTransition(StateType.Attack, StateType.Aim, () => _castState.CanExit && IsAimPressed()),
+                new StateTransition(StateType.Attack, StateType.Movement, () => _castState.CanExit && !IsAimPressed() && ReadInputValues().magnitude > 0.1f),
+                new StateTransition(StateType.Attack, StateType.Idle, () => _castState.CanExit && !IsAimPressed() && ReadInputValues().magnitude <= 0.1f),
             };
 
             _movementStateMachine = new StateMachine(globalStates, globalTransitions, StateType.Idle);
@@ -138,5 +152,38 @@ namespace Character
         private bool IsAimPressed() => _aimAction != null && _aimAction.IsPressed();
 
         private bool TryCastSpell() => _spellCaster != null && _spellCaster.TryCast();
+
+        private bool IsCastAnimationFinished()
+        {
+            if (_animationModule == null || _animationModule.Animator == null)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(_castAnimationStateName))
+            {
+                return true;
+            }
+
+            var layerIndex = Mathf.Clamp(_castAnimationLayer, 0, _animationModule.Animator.layerCount - 1);
+            var currentState = _animationModule.Animator.GetCurrentAnimatorStateInfo(layerIndex);
+
+            if (currentState.IsName(_castAnimationStateName))
+            {
+                return currentState.normalizedTime >= 1f;
+            }
+
+            if (_animationModule.Animator.IsInTransition(layerIndex))
+            {
+                var nextState = _animationModule.Animator.GetNextAnimatorStateInfo(layerIndex);
+                if (nextState.IsName(_castAnimationStateName))
+                {
+                    return false;
+                }
+            }
+
+            // If animator already left cast state, treat the clip as completed.
+            return true;
+        }
     }
 }

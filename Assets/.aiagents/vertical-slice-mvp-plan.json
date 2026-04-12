@@ -1,0 +1,484 @@
+{
+  "schema_version": "1.1.0",
+  "plan_id": "losttime-core-push-pull-press",
+  "title": "LostTime core mechanic plan for push/pull/press",
+  "objective": "Сделать отдельную ветку реализации core-механики push/pull/press на базе IMarkable, IPressable и IControlable, а затем уже строить поверх нее character integration, world objects, quest и HUD.",
+  "execution_contract": {
+    "one_leaf_task_one_sub_agent": true,
+    "root_tasks_are_orchestrators": true,
+    "orchestrator_tasks_assignable": false,
+    "leaf_tasks_only": true,
+    "task_must_be_atomic": true,
+    "take_task_only_when_dependencies_completed": true,
+    "subtasks_allowed": true,
+    "wide_scope_policy": [
+      "Широкая задача оформляется как orchestration-task.",
+      "В работу уходит только leaf-task.",
+      "Core-ветка LT-CORE является обязательной и приоритетной относительно vertical slice задач."
+    ],
+    "parallelism_policy": [
+      "Параллелить только leaf-task без пересечения write_scope.",
+      "При конфликте write_scope исполнять задачи последовательно.",
+      "Приоритет у correctness и архитектурной чистоты core-механики."
+    ]
+  },
+  "architecture_guardrails": {
+    "product_shape": "modular monolith with isolated core interaction branch",
+    "patterns": [
+      "interface-driven design",
+      "event-driven",
+      "observer",
+      "separated character feature"
+    ],
+    "rules": [
+      "Core interaction vocabulary не должен зависеть от quest, HUD и scene wiring.",
+      "Маркировка целей идет через IMarkable.",
+      "Коммуникация идет через IPressable и IControlable.",
+      "Character interaction feature должна жить отдельно от текущей movement/combat state machine либо использовать отдельную локальную state machine.",
+      "Push и pull должны быть pointer-driven.",
+      "Quest и HUD подключаются к core через bridges и adapters."
+    ],
+    "anti_goals": [
+      "Без переписывания текущего Character и HFSM с нуля.",
+      "Без зашивания логики взаимодействий в quest progression.",
+      "Без hardcoded puzzle objects как единственного варианта расширения.",
+      "Без привязки core-механики к одной конкретной сцене."
+    ],
+    "module_layout": [
+      "Scripts/Gameplay/Interaction/Core",
+      "Scripts/Gameplay/Interaction/Character",
+      "Scripts/Gameplay/Interaction/World",
+      "Scripts/Gameplay/Interaction/Authoring",
+      "Scripts/Quest",
+      "Scripts/UI"
+    ]
+  },
+  "project_context": {
+    "important_files": [
+      "Scripts/Loot/Systems/IMarkable.cs",
+      "Scripts/Loot/Systems/InteractionController.cs",
+      "Scripts/Loot/Systems/IInteractable.cs",
+      "Scripts/Loot/Systems/InteractionTarget.cs",
+      "Scripts/Loot/Systems/Character.cs",
+      "Scripts/Character/States/CharacterStateMachineInitializer.cs",
+      "Scripts/Quest/VerticalSliceQuestProgression.cs",
+      "Scripts/UI/VerticalSliceHudPresenter.cs"
+    ],
+    "notes": [
+      "В проекте уже есть IMarkable и InteractionController.",
+      "Текущий character update loop уже отделяет interaction вызов от movement state machine update.",
+      "Новая core-механика должна переиспользовать это разделение, но не оставаться на уровне одного TryInteract."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "LT-CORE-001",
+      "title": "Core interaction branch orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [],
+      "subtasks": [
+        "LT-CORE-001A",
+        "LT-CORE-001B",
+        "LT-CORE-001C"
+      ],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Core"
+      ],
+      "goal": "Зафиксировать vocabulary, runtime contracts и control session model для новой core-механики."
+    },
+    {
+      "id": "LT-CORE-001A",
+      "title": "Interaction vocabulary contracts",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Core"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Core"
+      ],
+      "goal": "Определить базовые интерфейсы и enum: IPressable, IControlable, control mode, interaction intent, pointer target context."
+    },
+    {
+      "id": "LT-CORE-001B",
+      "title": "Markable focus bridge",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-001A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Core",
+        "Scripts/Loot/Systems"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Core",
+        "Scripts/Loot/Systems"
+      ],
+      "goal": "Связать новый vocabulary layer с существующим IMarkable и focus discovery без потери текущего interaction flow."
+    },
+    {
+      "id": "LT-CORE-001C",
+      "title": "Control session primitives",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-001A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Core"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Core"
+      ],
+      "goal": "Сделать runtime session model для start, maintain и stop control interaction."
+    },
+    {
+      "id": "LT-CORE-002",
+      "title": "Character interaction feature orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-CORE-001"
+      ],
+      "subtasks": [
+        "LT-CORE-002A",
+        "LT-CORE-002B",
+        "LT-CORE-002C"
+      ],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Loot/Systems"
+      ],
+      "goal": "Подключить core-механику к персонажу как отдельную feature-ветку, не ломая текущий movement/combat flow."
+    },
+    {
+      "id": "LT-CORE-002A",
+      "title": "Character interaction driver",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-001B",
+        "LT-CORE-001C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Loot/Systems"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Loot/Systems"
+      ],
+      "goal": "Сделать отдельный runtime driver для interaction feature в character update loop."
+    },
+    {
+      "id": "LT-CORE-002B",
+      "title": "Parallel movement and control policy",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-002A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Loot/Systems",
+        "Scripts/Character"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Loot/Systems",
+        "Scripts/Character"
+      ],
+      "goal": "Зафиксировать правила, при которых персонаж может двигаться параллельно с активной control session."
+    },
+    {
+      "id": "LT-CORE-002C",
+      "title": "Pointer-driven intent resolver",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-002A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Input"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Character",
+        "Scripts/Input"
+      ],
+      "goal": "Привязать push/pull intent к pointer мыши и target selection."
+    },
+    {
+      "id": "LT-CORE-003",
+      "title": "World object adapters orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 3,
+      "dependencies": [
+        "LT-CORE-001",
+        "LT-CORE-002"
+      ],
+      "subtasks": [
+        "LT-CORE-003A",
+        "LT-CORE-003B",
+        "LT-CORE-003C"
+      ],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "goal": "Сделать базовые world adapters для press и controllable объектов."
+    },
+    {
+      "id": "LT-CORE-003A",
+      "title": "Pressable world object",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-001A",
+        "LT-CORE-002A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "goal": "Сделать базовый объект мира, реализующий IPressable."
+    },
+    {
+      "id": "LT-CORE-003B",
+      "title": "Push controllable object",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-001A",
+        "LT-CORE-002B",
+        "LT-CORE-002C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "goal": "Сделать pointer-driven push объект через IControlable."
+    },
+    {
+      "id": "LT-CORE-003C",
+      "title": "Pull controllable object",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-001A",
+        "LT-CORE-002B",
+        "LT-CORE-002C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "goal": "Сделать pointer-driven pull объект через IControlable."
+    },
+    {
+      "id": "LT-CORE-004",
+      "title": "Authoring and safety orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-CORE-003"
+      ],
+      "subtasks": [
+        "LT-CORE-004A",
+        "LT-CORE-004B"
+      ],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Authoring",
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "goal": "Снизить риск битых конфигов и непонятного scene wiring для core-механики."
+    },
+    {
+      "id": "LT-CORE-004A",
+      "title": "OnValidate guards for interaction objects",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-003A",
+        "LT-CORE-003B",
+        "LT-CORE-003C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Authoring",
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Authoring",
+        "Scripts/Gameplay/Interaction/World"
+      ],
+      "goal": "Добавить локальные проверки на пустые refs, невозможные режимы и битые pointer bindings."
+    },
+    {
+      "id": "LT-CORE-004B",
+      "title": "Debug gizmos and runtime diagnostics",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-003B",
+        "LT-CORE-003C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Gameplay/Interaction/Authoring",
+        "Scripts/Gameplay/Interaction/Character"
+      ],
+      "write_scope": [
+        "Scripts/Gameplay/Interaction/Authoring",
+        "Scripts/Gameplay/Interaction/Character"
+      ],
+      "goal": "Сделать gizmos и lightweight diagnostics для focus, pointer target и control session."
+    },
+    {
+      "id": "LT-VS-001",
+      "title": "Vertical slice integration orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-CORE-004"
+      ],
+      "subtasks": [
+        "LT-VS-001A",
+        "LT-VS-001B",
+        "LT-VS-001C"
+      ],
+      "scope_paths": [
+        "Scripts/Quest",
+        "Scripts/UI",
+        "Scenes"
+      ],
+      "goal": "После готовности core-механики подвязать ее к текущему vertical slice flow."
+    },
+    {
+      "id": "LT-VS-001A",
+      "title": "Quest bridge for core mechanic",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-003A",
+        "LT-CORE-003B",
+        "LT-CORE-003C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest"
+      ],
+      "write_scope": [
+        "Scripts/Quest"
+      ],
+      "goal": "Подключить события press/push/pull к quest progression без зашивания quest логики в core."
+    },
+    {
+      "id": "LT-VS-001B",
+      "title": "HUD prompts for core verbs",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-CORE-002C",
+        "LT-CORE-003A",
+        "LT-CORE-003B",
+        "LT-CORE-003C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/UI",
+        "Scripts/Gameplay/Interaction"
+      ],
+      "write_scope": [
+        "Scripts/UI",
+        "Scripts/Gameplay/Interaction"
+      ],
+      "goal": "Дать игроку короткие pointer-aware prompts для press, push и pull."
+    },
+    {
+      "id": "LT-VS-001C",
+      "title": "Scene wiring for core mechanic smoke path",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-VS-001A",
+        "LT-VS-001B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scenes",
+        "Prefabs"
+      ],
+      "write_scope": [
+        "Scenes",
+        "Prefabs"
+      ],
+      "goal": "Собрать воспроизводимый smoke path, где core-механика проходит путь от focus до quest completion."
+    }
+  ]
+}

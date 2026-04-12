@@ -1,78 +1,131 @@
-# Wizard Trial MVP Concept
+# LostTime MVP Concept
 
 ## Final concept
 
-`Wizard Trial` is a short third-person action-adventure MVP about a young mage taking a final academy trial inside a small zone broken by a time anomaly. Player must restore 3 seals, survive corrupted creatures, defeat the trial guardian, and return as a licensed wizard.
+`LostTime` is a short third-person action-adventure MVP about a young mage entering an unstable inner courtyard of a magical castle and restoring order through environmental magic.
 
-Game is built around one hero, one level, one main quest chain, and one clear ending. Scope stays small, but fantasy stays complete: enter trial, master magic under pressure, overcome anomaly, earn status.
+The game is built around:
+
+- one hero
+- one open courtyard location
+- one short quest line
+- one consistent interaction language
+- one clear ending state
+
+The project no longer depends on a combat-heavy trial structure to feel complete.
 
 ## Fantasy
 
-Player fantasy is: "I am a young wizard proving I can control dangerous magic in a collapsing trial ground."
+Player fantasy is:
+
+"I am a young mage using simple but powerful magic to manipulate an ancient courtyard, overcome dangerous magical mechanisms, and complete a real trial."
 
 Fantasy should deliver:
 
-- cast practical combat magic, not melee
 - move like a capable third-person hero
-- survive hostile creatures in ruined magical space
-- interact with seals, loot, and mentor guidance
-- finish a personal rite of passage, not endless sandbox play
+- interact with a magical castle space in visible, physical ways
+- solve chained world-state problems through magic
+- feel pressure from an unstable environment
+- complete a short but coherent rite-of-passage story
 
 ## Player promise
 
 Player promise:
 
-"In one short session, you will feel like a wizard on a real final exam: explore a cursed trial zone, fight with magic, restore ancient seals, defeat a guardian, and complete a full story arc."
+"In one short session, you will explore a magical ruined courtyard, use intuitive spell-like interactions to change the world around you, overcome dangerous environmental trials, and finish a complete adventure arc."
 
 ## MVP identity
 
-This MVP is not "open world wizard game" and not "deep RPG". It is a compact vertical slice with complete loop:
+This MVP is not:
 
-1. receive trial objective
-2. explore and fight through anomaly zone
-3. restore 3 seals
-4. unlock final arena
-5. defeat guardian
-6. return and complete trial
+- full combat game
+- deep RPG
+- puzzle sandbox
+- open world wizard sim
+
+This MVP is:
+
+- a compact action-adventure slice
+- set in one open courtyard
+- driven by `push / pull / press`
+- structured around visible cause and effect
+
+## Core verbs
+
+The primary magical interaction language is:
+
+- `pull`
+- `push`
+- `press`
+
+Those verbs should cover most of the core gameplay.
+
+They may be applied to:
+
+- blocks
+- chains
+- sliders
+- buttons
+- pressure plates
+- gates
+- bridges
+- magical barriers
+- ritual mechanisms
 
 ## Core pillars
 
-- `Wizard power`: ranged magic is primary combat expression
-- `Trial pressure`: every step feels like a test of control and survival
-- `Broken time place`: zone feels unstable, corrupted, and magical
-- `Small but complete story`: clear beginning, escalation, climax, ending
+- `Readable magic`: the player immediately understands what their interaction changed
+- `Spatial cause and effect`: puzzles are solved by changing world state in physical space
+- `Action pressure`: timing, movement, and hazards keep the game feeling active
+- `Small but complete story`: clear beginning, escalation, climax, and ending
 
 ## Scope boundaries
 
 Include:
 
 - third-person movement and camera
-- magic projectile combat with mana and cooldown
-- 3 enemy archetypes + 1 boss
-- mentor NPC, basic dialog, single main quest chain
-- pickups: mana, heal, coins, keys if needed
-- quest text, HUD, interact hints, win/lose states
+- open courtyard traversal
+- direct interaction targets
+- movable or activatable world objects
+- chained environmental puzzles
+- quest text, HUD, interaction hints, and completion state
+- optional light hazards or simple hostile pressure if needed
 
-Avoid in MVP:
+Avoid in MVP unless re-approved:
 
-- crafting
+- enemy roster expansion as a core pillar
+- boss-first design
+- multiple spell schools
 - inventory micromanagement
+- crafting
 - branching story
-- multiple spells loadouts
-- open world exploration
-- save/load complexity beyond session progress
+- multi-level campaign
 
 ## Tone and fantasy target
 
-Tone is mystical, tense, and heroic. World should feel like academy trial gone wrong, not horror and not comedy. Player should end with "I passed the test and earned my place."
+Tone is mystical, tense, and adventurous.
+
+The world should feel like:
+
+- ancient
+- magical
+- unstable
+- ceremonial
+
+It should not feel like:
+
+- horror dungeon
+- arena shooter
+- comedy sandbox
 
 ## Success check
 
-Concept is successful if player can say:
+Concept is successful if the player can say:
 
-- "I played a full wizard trial, not a mechanic demo."
-- "Magic combat and seal restoration felt like same fantasy."
-- "Game had clear start, middle, boss, and ending."
+- "I played a real short adventure, not just a mechanic test."
+- "My magic changed the courtyard in satisfying ways."
+- "The game felt active even without deep combat."
+- "The ending felt earned."
 
 ## Unresolved questions
 

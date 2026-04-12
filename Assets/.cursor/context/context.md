@@ -1,9 +1,113 @@
-# LostTime Project Context
+# LostTime Technical Context
 
-## Project Description
-`LostTime` is a Unity gameplay prototype built around a controllable character, modular movement/animation systems, and an in-progress loot or interaction layer. The current codebase looks like a third-person character sandbox with walking, running, camera look, item setup data, and world interaction primitives.
+## Single Source Of Truth
+
+This file is the primary technical source of truth for the current project state.
+
+If any other planning file, prompt file, or old documentation conflicts with this file:
+
+1. `Assets/.cursor/context/context.md` wins.
+2. The newer design direction wins over legacy combat-first docs.
+3. Old combat-oriented vertical-slice docs must be treated as legacy unless they are explicitly updated to match this file.
+
+## Current Project Direction
+
+`LostTime` is currently a short third-person action-adventure diploma project set in an open inner courtyard of a magical medieval castle.
+
+The project is no longer targeting a combat-heavy vertical slice as its main identity.
+
+The current gameplay focus is:
+
+- exploration inside one open-space courtyard map
+- environmental interaction through simple magical verbs
+- short quest progression for a 20-30 minute play session
+- readable, chained spatial puzzles
+- light action pressure from environment, timing, and moving world state
+
+The main interaction language is:
+
+- `push`
+- `pull`
+- `press`
+
+Those verbs should drive most puzzle, traversal, and world-state interactions.
+
+## Genre Framing
+
+Target framing:
+
+- `action-adventure with environmental magical puzzles`
+
+Not target framing:
+
+- full combat game
+- deep RPG
+- inventory-heavy adventure
+- physics sandbox
+
+Action in this project should mainly come from:
+
+- timing windows
+- moving gates and bridges
+- hazardous zones
+- world pressure during puzzle execution
+- fast chained interaction sequences
+
+## World / Level Context
+
+- Main playable space is an open inner castle courtyard.
+- The space can include walls, gates, towers, exterior stairs, raised platforms, altars, ruins, arches, and outer walkways.
+- The space should not be designed around indoor room-to-room progression.
+- Progression should come from courtyard sectors, vertical routes, gate states, and world-state changes.
+
+## MVP Fantasy
+
+Player fantasy:
+
+"I am a young mage using simple but powerful magic to manipulate an ancient courtyard, overcome dangerous magical mechanisms, and complete a real trial."
+
+The hero should feel active and capable, but the game does not need complex combat depth to support that fantasy.
+
+## Primary Design Pillars
+
+### 1. One Clear Interaction Language
+
+Most core gameplay should be expressible through:
+
+- pulling objects or mechanisms
+- pushing objects or mechanisms
+- pressing buttons, runes, plates, or activators
+
+### 2. Spatial Cause And Effect
+
+The player should read the courtyard, understand how one object affects another, and solve problems by changing world state step by step.
+
+### 3. Short Chained Puzzles
+
+The strongest puzzle format for this project is:
+
+- action A unlocks object B
+- object B enables action C
+- action C opens path D
+
+Simple verbs, deeper sequencing.
+
+### 4. Action Pressure Without Full Combat Dependence
+
+The project may include combat or hostile entities, but they are secondary.
+
+Primary pressure should come from:
+
+- temporary openings
+- dangerous floor patterns
+- unstable magical energy
+- moving gates
+- forced repositioning
+
+## Technical Project Snapshot
 
 ## Unity / Rendering
+
 - Engine version: `6000.3.9f1`
 - Unity revision: `6000.3.9f1 (7a9955a4f2fa)`
 - Render pipeline: `Universal Render Pipeline`
@@ -13,77 +117,168 @@
 - Main scene currently present: `Assets/Scenes/SampleScene.unity`
 
 ## High-Level Structure
-- `Assets/Scripts/Character`: character setup, modules, and movement states
-- `Assets/Scripts/FSM`: custom finite state machine and hierarchical state infrastructure
-- `Assets/Scripts/Loot`: item data, loot systems, and inventory-related code
-- `Assets/Scripts/Input`: Unity Input System asset and generated wrapper
+
+- `Assets/Scripts/Character`: player setup, modules, and state-driven behaviour
+- `Assets/Scripts/FSM`: custom FSM and HFSM infrastructure
+- `Assets/Scripts/Loot`: interaction-adjacent data and interfaces, pickups, inventory pieces
+- `Assets/Scripts/Quest`: current quest orchestration scripts
+- `Assets/Scripts/Combat`: projectile, mana, vitals, and combat-adjacent runtime pieces
+- `Assets/Scripts/Enemy`: legacy enemy encounter slice pieces
+- `Assets/Scripts/Input`: Input System asset and generated wrapper
 - `Assets/Scripts/DI`: Zenject installers
-- `Assets/Scripts/Utils`: event bus, raycast filters, and directional raycasters
-- `Assets/Scripts/CodeGeneration`: editor-side constant key generation
-- `Assets/Setups`: ScriptableObject assets for character, animation, and items
-- `Assets/Animations`: animator controller and movement clips
-- `Assets/Generated`: generated constants such as animation keys
-- `Assets/Settings`: URP assets, renderer assets, and rendering profiles
+- `Assets/Scripts/Utils`: event bus, raycast filters, and raycasters
+- `Assets/Scripts/CodeGeneration`: editor-side constant generation
+- `Assets/Generated`: generated constants and generated outputs
+- `Assets/Scenes/SampleScene.unity`: current active working scene
 
-## Core Code Features
-- Character controller built from serialized modules instead of one monolithic behaviour
-- Custom movement flow using a hierarchical FSM with global and nested states
-- Walk and run locomotion driven by `CharacterSetup` ScriptableObject values
-- Camera rotation read from input every frame
-- Animation signalling routed through an internal `EventBus` plus animation facade
-- Loot system based on `ItemSetup`, `ItemsDatabase`, and world item interfaces like `ITakable` and `IMarkable`
-- Interaction helpers built around directional raycasters and raycast filters
-- Editor code generation for strongly named constant keys under `Assets/Generated`
+## Existing Reusable Technical Seams
 
-## Project Patterns
-### 1. Modular Character Composition
-The main character behaviour wires together independent modules:
+### 1. Character Composition
+
+The player runtime already uses modular composition instead of one monolithic controller.
+
+Important seams:
+
 - `MovementModule`
 - `RotationModule`
 - `AnimationModule`
+- root `Character` behaviour
 
-Concrete gameplay behaviour is implemented through variants such as `CharacterMovementModule`, while the root character MonoBehaviour coordinates them.
+This is the correct place to integrate new interaction-driven behaviour.
 
-### 2. Custom FSM / HFSM
-Movement is not handled by Animator transitions alone. The project has its own:
+### 2. FSM / HFSM
+
+The project already has:
+
 - `State`
 - `StateMachine`
 - `StateTransition`
 - `HierarchicalState`
 
-Current active movement states include `Idle`, `Walk`, and `Run`, with placeholders in `StateType` for future behaviours like `Jump`, `Aim`, `Attack`, `Looting`, and `Communication`.
+Use these seams when player control must be gated, locked, or temporarily redirected by interaction logic.
 
-### 3. ScriptableObject-Driven Configuration
-The project stores gameplay configuration in assets rather than hardcoding data:
-- `CharacterSetup` for movement speeds
-- `AnimationParamsDataBase` for animation parameter metadata
-- `ItemSetup` and `ItemsDatabase` for item content
+Do not bypass them with ad-hoc state booleans if an existing state seam can solve the problem.
 
-This is a strong project convention and should be preserved when adding new configurable gameplay features.
+### 3. Input System + Zenject
 
-### 4. Input System + DI
-Input is handled with Unity's new Input System through:
-- `Assets/Scripts/Input/MainInput.inputactions`
-- generated wrapper `MainInput.cs`
+Input is already centralized through:
 
-Bindings are installed through Zenject in `InputInstaller`, where a shared `MainInput` instance is created, enabled, bound, and disposed.
+- `Assets/InputSystem_Actions.inputactions`
+- generated `MainInput.cs`
+- `InputInstaller`
 
-### 5. Event-Based Animation Communication
-Animation communication uses a lightweight in-project pub/sub bus:
-- `Utils.Events.EventBus`
-- animation facade classes under `Character.Modules.Animation.Facade`
+All new player actions should start from the Input System asset and flow through the existing generated wrapper and DI path.
 
-This reduces direct coupling between gameplay states and animator parameter writes.
+### 4. Interaction Targeting
 
-### 6. Editor-Time Code Generation
-The project uses editor tooling to generate constant key classes. `ConstKeysGenerator` writes generated files into `Assets/Generated`. Treat this folder as generated output, not hand-authored gameplay logic.
+The project already has a forward interaction path built on:
+
+- `DirectionalRaycaster`
+- `RaycastFilter`
+- `InteractionController`
+- `InteractionTarget`
+- `IMarkable`
+
+This is the preferred seam for:
+
+- buttons
+- runes
+- levers
+- altar interactions
+- direct activators
+
+### 5. World Item / Data Patterns
+
+The project already uses data-driven assets and simple interfaces:
+
+- `ItemSetup`
+- `ItemsDatabase`
+- `ITakable`
+- `IInteractable`
+
+These can be reused where appropriate, but puzzle-critical world logic should not be forced into item semantics if a dedicated environmental interaction component is cleaner.
+
+### 6. Spell / Projectile Runtime
+
+The project already contains:
+
+- `CharacterSpellCaster`
+- `SpellProjectile`
+- `CharacterMana`
+- `CharacterVitals`
+
+These can be reused or repurposed as support systems.
+
+Important: they are no longer the primary identity of the project.
+
+Spell or projectile behaviour should support environmental interaction if helpful, but the MVP must not depend on expanding into a full combat architecture.
+
+## Current Recommended Mechanic Architecture
+
+Best fit for the project:
+
+- a world interaction layer that translates `push / pull / press` into object state changes
+- reusable environmental components such as:
+  - movable blocks
+  - pressure plates
+  - buttons
+  - pullable sliders
+  - chains
+  - gates
+  - bridges
+  - magical barriers
+- a lightweight quest or progression layer that tracks completed world states
+- optional hazard systems that create timing and action pressure
+
+## Current Scope Boundaries
+
+Include:
+
+- one open courtyard map
+- one mentor or framing NPC if needed
+- a short guided progression chain
+- environmental magical puzzles
+- world-state based gate opening
+- minimal HUD and interaction readability
+- optional light danger or hazard pressure
+
+Avoid unless explicitly re-approved:
+
+- large enemy roster
+- boss-first design
+- multiple combat styles
+- heavy inventory management
+- branching quests
+- large multi-scene story expansion
+
+## Legacy Systems Status
+
+The repository still contains a combat-first vertical slice:
+
+- seal restoration flow
+- enemy encounters
+- guardian encounter
+- arena unlock logic
+
+These are useful as reference or reusable code, but they are not the current design source of truth.
+
+Agents must not assume:
+
+- three enemy archetypes are required
+- a guardian boss is required
+- combat is the main progression driver
+- indoor room-based structure is still intended
 
 ## Project-Specific Libraries / Packages
+
 ### In-project / embedded libraries
-- `Zenject` for dependency injection
-- `UniTask` plugin present under `Assets/Plugins`
+
+- `Zenject`
+- `UniTask`
+- `DOTween`
 
 ### Unity packages in use
+
 - `com.unity.render-pipelines.universal`
 - `com.unity.inputsystem`
 - `com.unity.cinemachine`
@@ -97,9 +292,12 @@ The project uses editor tooling to generate constant key classes. `ConstKeysGene
 - `com.unity.visualeffectgraph`
 - `com.unity.visualscripting`
 
-## Practical Notes For Future Work
-- Prefer extending existing module abstractions before adding one-off logic to the root character behaviour.
-- Prefer new gameplay data as ScriptableObjects when designers may need to tune it.
-- If adding locomotion or interaction states, integrate them through the existing FSM or HFSM structure.
-- Do not manually edit generated files under `Assets/Generated` unless the generation flow is intentionally being changed.
-- Input changes should usually start from `MainInput.inputactions`, then propagate through the generated wrapper and Zenject wiring.
+## Implementation Guidance
+
+- Prefer extending existing seams before creating a parallel architecture.
+- Prefer `ScriptableObject` data for values designers may tune.
+- Prefer world-state orchestration over hardcoded one-off scene hacks.
+- Prefer small, composable environmental components over one giant puzzle manager.
+- Prefer inspector-driven scene wiring when the interaction is level-specific.
+- Do not manually edit generated files under `Assets/Generated` unless intentionally changing generator flow.
+- If an old document conflicts with this file, update the old document or mark it as legacy before using it.

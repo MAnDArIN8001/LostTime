@@ -4,6 +4,14 @@
 
 Use these prompt files to run stage-scoped implementation or planning work without drifting outside the current MVP frame.
 
+Current truth priority:
+
+1. `Assets/.cursor/context/context.md`
+2. current `game-plan` docs
+3. stage prompt files
+
+If a stage prompt still reflects the older combat-first slice and conflicts with the context file, the context file wins.
+
 ## Files
 
 - `00_Agent_System.md`: shared rules, required docs, architecture constraints, documentation flow
@@ -20,6 +28,7 @@ Use these prompt files to run stage-scoped implementation or planning work witho
 3. Read the chosen stage file second.
 4. Also read the required project docs listed in those files.
 5. Execute only the mission and scope of that stage.
+6. Create or update a worklog under `Assets/.cursor/docs/worklogs/`.
 
 ## Prompting Flow
 
@@ -35,17 +44,19 @@ When using a stage prompt in Cursor:
    - `Scene/Inspector`
    - `Validation`
    - `Decision Log`
+   - `Worklog Path`
 4. Ask it to finish with:
    - step-by-step requirements
    - exact editor or inspector setup steps
+   - commit subject with approved prefix
    - unresolved questions
 
 ## Selection Rule
 
 - Need to lock scope or architecture only: use Stage 1
-- Need the first playable quest-combat slice: use Stage 2
-- Need the complete main gameplay loop: use Stage 3
-- Need the boss and ending path: use Stage 4
+- Need the first playable courtyard verb slice: use Stage 2
+- Need the complete courtyard main loop: use Stage 3
+- Need the finale and ending path: use Stage 4
 - Need demo polish and readability: use Stage 5
 
 ## Editor Configuration

@@ -1,5 +1,10 @@
 # Stage 4 Agent Prompt: Boss And Ending
 
+> Legacy note:
+> This prompt may contain boss-first assumptions from the older combat slice.
+> Read `Assets/.cursor/context/context.md` first.
+> If any section conflicts with the current courtyard `push / pull / press` direction, the context file wins.
+
 ## Mission
 
 Add the climax and resolution. Deliver the trial guardian fight, boss-to-ending quest wiring, final mentor payoff, and clear win state so the MVP ends as a full wizard trial.

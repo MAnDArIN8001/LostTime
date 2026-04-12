@@ -13,6 +13,7 @@ namespace Character.Modules.Animation
         [Space, SerializeField] private AnimationParamsDataBase _animationParamsDataBase;
 
         private EventBus _animationEventBus;
+        public Animator Animator => _animator;
 
         public void Initialize(EventBus animationEventBus)
         {

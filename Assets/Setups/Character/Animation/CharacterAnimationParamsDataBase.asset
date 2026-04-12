@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ec0b44ca9d24e00b4d96bd7d6830fa7, type: 3}
   m_Name: CharacterAnimationParamsDataBase
   m_EditorClassIdentifier: 
-  _generatedClassName: CharacterAnimationKeys
   _animationParamsList:
   - {fileID: 11400000, guid: 12f1e62b4d898ee48b0c74e4b311ca94, type: 2}
   - {fileID: 11400000, guid: abe6b83d87f49e24b9709a09cbcb836b, type: 2}
+  - {fileID: 11400000, guid: 4ca40b64fcb038a4ba610051f57c7c55, type: 2}

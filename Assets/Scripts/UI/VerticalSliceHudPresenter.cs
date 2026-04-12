@@ -25,6 +25,7 @@ namespace UI
 
         [Header("Hint Presentation")]
         [SerializeField] private string _interactionPrefix = "[Interact]";
+        [SerializeField] private bool _useEventBusInteractionHint = true;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource _feedbackAudioSource;
@@ -58,9 +59,12 @@ namespace UI
 
             if (_interactionController != null)
             {
-                _interactionController.FocusHintChanged += OnInteractionHintChanged;
                 _interactionController.PickupCollected += OnPickupCollected;
-                OnInteractionHintChanged(_interactionController.CurrentInteractHint);
+                if (!_useEventBusInteractionHint)
+                {
+                    _interactionController.FocusHintChanged += OnInteractionHintChanged;
+                    OnInteractionHintChanged(_interactionController.CurrentInteractHint);
+                }
             }
 
             ConsumablePickupItem.Collected += OnConsumableCollected;
@@ -85,7 +89,10 @@ namespace UI
 
             if (_interactionController != null)
             {
-                _interactionController.FocusHintChanged -= OnInteractionHintChanged;
+                if (!_useEventBusInteractionHint)
+                {
+                    _interactionController.FocusHintChanged -= OnInteractionHintChanged;
+                }
                 _interactionController.PickupCollected -= OnPickupCollected;
             }
 

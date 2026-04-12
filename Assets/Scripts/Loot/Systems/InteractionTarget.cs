@@ -1,4 +1,5 @@
 using System;
+using Gameplay.Interaction.Core;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -27,6 +28,7 @@ namespace Loot.Systems
         {
             if (!CanInteract)
             {
+                InteractionDebugLog.Log(this, $"InteractionTarget '{name}' rejected interaction because it is consumed.");
                 return;
             }
 
@@ -35,6 +37,7 @@ namespace Loot.Systems
                 _isConsumed = true;
             }
 
+            InteractionDebugLog.Log(this, $"InteractionTarget '{name}' invoked by '{(interactor != null ? interactor.name : "null")}'. singleUse={_singleUse}, consumeOnInteract={_consumeOnInteract}.");
             _onInteracted?.Invoke();
             Interacted?.Invoke(this, interactor);
         }

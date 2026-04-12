@@ -6,6 +6,8 @@ Shared meta-rules for every stage agent prompt in `realization-steps`.
 
 Use this file as the mandatory base contract. Each stage file adds only stage mission, stage scope, stage outputs, and stage-specific checks.
 
+If a stage file conflicts with `Assets/.cursor/context/context.md`, the context file wins.
+
 ## Mandatory Inputs
 
 Every stage agent must read these docs before planning or implementing:
@@ -15,6 +17,7 @@ Every stage agent must read these docs before planning or implementing:
 - `Assets/.cursor/tasks/game-plan/CoreLoop.md`
 - `Assets/.cursor/tasks/game-plan/02_Implementation_Map.md`
 - `Assets/.cursor/tasks/game-plan/03_Realization_Steps.md`
+- `Assets/.cursor/docs/WORKLOG_TEMPLATE.md`
 
 ## Architecture Rules
 
@@ -25,6 +28,7 @@ Every stage agent must read these docs before planning or implementing:
 - Keep tunables and content data-driven through `ScriptableObject` assets.
 - Keep execution gates inside the current FSM / HFSM stack.
 - Do not create a parallel architecture if an existing seam already solves the job.
+- The current design target is `action-adventure with environmental magical puzzles`, not combat-first slice expansion.
 - Every architecture choice must include:
   - why it was chosen
   - what coupling it reduces
@@ -42,6 +46,12 @@ Stage agents should treat these seams as defaults:
 - `ItemSetup` and `ItemsDatabase` are the content-data seams.
 - `DirectionalRaycaster`, filters, and markable contracts are the interaction seam.
 
+Stage agents should assume the core mechanic language is:
+
+- `push`
+- `pull`
+- `press`
+
 ## Documentation Flow
 
 Every stage prompt must require documentation before or alongside implementation.
@@ -56,6 +66,24 @@ Required sections:
 - `Validation`: playable checks and test route
 - `Decision Log`: why this path, why not a simpler or alternative path
 
+Every implementation task must also produce or update a worklog in:
+
+- `Assets/.cursor/docs/worklogs/`
+
+Default naming:
+
+- `YYYY-MM-DD_short-task-slug.md`
+
+Required worklog sections:
+
+- `Summary`
+- `Files Changed`
+- `Scene/Inspector`
+- `Validation`
+- `Decision Log`
+- `Follow-Ups`
+- `Commit`
+
 ## Delivery Rules
 
 - Keep prompts stage-based, not system-based.
@@ -63,6 +91,13 @@ Required sections:
 - State exact non-scope to prevent feature sprawl.
 - Require a playable scene state, not just code-complete status.
 - Require editor steps even when the answer is `none`.
+- Require a worklog path in the final handoff.
+- Require one repository commit per scoped agent task unless the user explicitly forbids commits.
+- Allowed commit prefixes:
+  - `fix:`
+  - `feat:`
+  - `update:`
+  - `refactor:`
 - End each implementation handoff with:
   - a step-by-step requirements list
   - explicit inspector or editor setup steps
@@ -80,6 +115,8 @@ A stage prompt is only valid if it:
 - embeds the full documentation flow
 - includes acceptance checks for playable validation
 - includes editor configuration steps or `none`
+- includes a worklog deliverable
+- includes commit policy
 
 ## Shared Template
 
@@ -113,6 +150,7 @@ Out:
 
 - {playable result}
 - {docs to produce or update}
+- {worklog path to create or update}
 - {assets / prefabs / scene wiring / data created}
 
 ## Architecture Fit Rules
@@ -177,6 +215,8 @@ Out:
 - {clear done condition}
 - {playable scene state reached}
 - {docs updated}
+- {worklog updated}
+- {commit created with approved prefix}
 
 ## Requirements
 

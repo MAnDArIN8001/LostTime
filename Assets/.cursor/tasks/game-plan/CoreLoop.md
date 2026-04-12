@@ -2,53 +2,51 @@
 
 ## Short Story Loop
 
-- mentor sends young wizard into broken trial zone
-- player explores one small area split by anomaly pressure
-- player restores 3 seals, fights corrupted creatures, keeps mana and hp stable
-- restored seals open final arena
-- player defeats trial guardian
-- player returns to mentor, earns full mage status
+- mentor or framing figure introduces the unstable courtyard trial
+- player enters one open courtyard area and learns the first interaction verb
+- player changes world state through `push / pull / press`
+- each solved mechanism opens access to the next spatial problem
+- hazards and timing add action pressure during puzzle execution
+- player stabilizes the main ritual point and completes the short trial
 
 ## Quest Chain
 
-1. Talk to mentor at academy gate, accept final trial
-2. Enter trial zone, learn first anomaly rules
-3. Restore first seal, unlock safe path deeper in zone
-4. Restore second seal, face stronger mixed enemy group
-5. Restore third seal, open final arena
-6. Defeat trial guardian
-7. Return to mentor, finish quest and story
+1. Talk to mentor or activate the starting focal point
+2. Learn the first direct interaction in a safe local setup
+3. Use `push` or `pull` on a movable object to open the first route
+4. Solve a chained puzzle where one mechanism unlocks the next
+5. Cross a pressured section with a timed gate, hazard, or moving state
+6. Reach the central ritual point
+7. Complete the final combined interaction sequence
+8. Return to the mentor or trigger the completion state
 
-## Enemies
+## Action pressure
 
-- melee beast: fast pressure unit, pushes player to move and kite
-- ranged cultist: mid-range projectile enemy, taxes mana and positioning
-- heavy golem: slow tank, blocks paths, creates area threat near seals
-- trial guardian: boss, mixes ranged shots, zone attack, summon or pressure phase
+- temporary gate openings
+- hazardous floor patterns
+- magical energy pulses
+- moving bridges or barriers
+- pressure while holding or timing a mechanism
 
-## Consumables
+## Optional secondary pressure
 
-- mana orb: restores mana, common drop from encounters near seals
-- heal flask: restores hp, rarer reward from harder fights or placed pickup
-- coins: simple trial reward collectible, used as score / progression currency if one gate needs payment or count check
+Use only if needed and only in a simple form:
 
-## Encounter Use
+- one lightweight magical hazard source
+- one simple hostile entity that disrupts puzzle flow
+- one reusable environmental threat pattern
 
-- early zone: melee beast + mana orb teaching loop
-- mid zone: beast + cultist + coin trail for movement and dodge checks
-- seal defense: golem + support enemies for high-pressure objective fights
-- final arena: solo guardian with heal or mana pickup windows for recovery pacing
+This project does not require a multi-enemy combat ladder to complete its loop.
 
 ## Requirements
 
 1. Keep loop one region, one mentor, one main quest.
-2. Use 3 seals as main progression gates.
-3. Keep enemy set to 3 regular types + 1 boss.
-4. Keep pickups to mana, heal, and coins for MVP.
-5. Use same fight format for all 3 seals.
-6. Keep guardian solo in boss arena.
-7. Create later quest, enemy, and item data from this doc.
-8. Inspector work now: none, doc only.
+2. Keep the main interaction language to `push / pull / press`.
+3. Build progression through world-state changes, not combat escalation.
+4. Use hazards and timing for action feel before adding enemies.
+5. Keep final challenge as a combined environmental trial.
+6. Create later quest, mechanism, and scene data from this doc.
+7. Inspector work now: none, doc only.
 
 ## Unresolved Questions
 

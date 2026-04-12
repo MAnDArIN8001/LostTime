@@ -2,7 +2,7 @@
 
 ## Goal
 
-Map MVP mechanics onto current project seams so later tasks plug into existing movement, FSM, input, and loot code instead of adding parallel systems.
+Map the current MVP mechanics onto existing project seams so later tasks plug into movement, FSM, input, interaction, and data-driven workflows instead of adding parallel systems.
 
 ## Existing seams
 
@@ -10,15 +10,16 @@ Map MVP mechanics onto current project seams so later tasks plug into existing m
 - `Character.Modules.Movement.MovementModule` + `CharacterMovementModule` already solve locomotion execution through `CharacterController`.
 - `FSM.StateMachine` + `HFSM.HierarchicalState` already solve root-state and child-state transitions.
 - `MainInput` + `DI.InputInstaller` already solve shared input creation, enable, and injection.
-- `Loot.Systems.ITakable` / `IMarkable` + `LootableItem` / `MarkableItem` are a partial base for manual pickups and highlights, but they need rework before becoming the main interaction standard.
+- `Loot.Systems.ITakable` / `IMarkable` + `LootableItem` / `MarkableItem` are a partial base for highlighted world targets and movable or collectable objects.
 - `Utils.Physics.Raycaster` + `Utils.Filters.RaycastFilter` already solve forward hit detection and filtered interaction targeting.
 - `Loot.Data.ItemSetup` + `ItemsDatabase` + `Loot.Inventory.InventoryService` already solve tunable item data and runtime counts.
+- `Combat.CharacterSpellCaster` + `Combat.SpellProjectile` already solve one possible route for ranged magical interaction if that supports environmental mechanics.
 
 ## Mechanic map
 
 ### Movement
 
-- `walk / run / camera / target facing`
+- `walk / run / camera / target facing / interaction positioning`
 - keep in current character stack:
 - `Character.Character` reads camera input and updates root FSM
 - `CharacterMovementState` reads `MainInput.Character.Movement`
@@ -27,32 +28,11 @@ Map MVP mechanics onto current project seams so later tasks plug into existing m
 - `MovementModule` variants stay source of actual displacement
 
 Implementation note:
-- extend movement by adding child states under `StateType.Movement`, not by bypassing the FSM with direct `MonoBehaviour` logic
-
-### Combat
-
-- `magic projectile / mana cost / cooldown / hit reaction`
-- use FSM as action gate:
-- `StateType.Attack` already exists for cast execution
-- `StateType.Aim` can hold pre-cast or lock-on behaviour if needed
-- `StateType.Attacking` can become parent scope if combat grows beyond one cast state
-- keep cast enter/exit animation writes behind `IAnimationFacade`
-- keep spell stats in ScriptableObjects under `Assets/Setups`
-
-Input fit:
-- add new actions in `MainInput.inputactions` for cast / aim / target
-- consume those actions inside new combat states, same pattern as movement states
-
-Loot fit:
-- coins / keys can stay `ItemSetup`-driven manual pickups
-- mana orb / heal flask can use trigger-based pickup flow instead of the current looting interaction flow
-- manual pickup objects can implement `ITakable`
-- highlight should stay optional through `IMarkable`, not mandatory for all pickups
-- pickup result should update `InventoryService` for stored items, or directly apply effect through a consumable service for instant pickups
+- extend movement by adding compatible gating states or interaction locks, not by bypassing the FSM with ad-hoc `MonoBehaviour` booleans
 
 ### Interaction
 
-- `NPC talk / pickup / activate seal`
+- `push / pull / press / talk / activate`
 - use one forward interaction flow:
 - ray source: `DirectionalRaycaster`
 - target filtering: `RaycastFilter`
@@ -61,68 +41,105 @@ Loot fit:
 
 Mapping by target:
 - NPC talk: same interaction ray + mark flow, then transition into `StateType.Communication`
-- manual pickup: same ray + mark flow, then call `ITakable.Take()`
-- trigger pickup: collide with player trigger, apply effect, then destroy object
-- seal activate: same ray + mark flow, then dispatch seal-specific logic from an activator component
+- button / rune / activator: same ray + mark flow, then dispatch direct world-state change
+- movable object: may use focus targeting plus a dedicated movable contract instead of item pickup semantics
+- pressure plate: usually passive world listener, activated by object weight or state
+- slider / chain / mechanism: direct interaction target with stateful response
+- manual pickup if still needed: same ray + mark flow, then call `ITakable.Take()`
 
 Implementation note:
-- current loot contracts are not enough to cover all interaction cases cleanly
-- seals and NPCs do not fit `ITakable`; they should reuse `IMarkable` + raycast targeting, then expose their own interaction interface or handler
-- consumables like mana and heal should not be forced through the same manual loot path if trigger pickup is simpler
+- current loot contracts are not enough to express all environmental interactions cleanly
+- do not force `push / pull / press` through `ITakable`
+- prefer dedicated environmental interfaces or components for:
+  - movable objects
+  - activators
+  - reactive mechanisms
+  - pressure listeners
+
+### Environmental mechanisms
+
+- `block / plate / gate / slider / chain / barrier / bridge`
+- keep these as composable world objects
+- prefer small purpose-built components over one giant puzzle manager
+
+Recommended split:
+
+- `MovableObject`: owns movement rules and allowed interaction verbs
+- `WorldActivator`: changes state on press or signal
+- `PressurePlate`: listens for object or weight presence
+- `GateController` / `BridgeController`: owns visible world state
+- `TimedStateController`: returns state after delay when needed
+- `SignalRelay` or event-based link when decoupling matters
+
+Implementation note:
+
+- local courtyard setups may use serialized references directly
+- reusable mechanism families should stay component-driven and inspector-wired
+
+### Magic support
+
+- `magic as environmental tool, not combat pillar`
+- if spell casting is used, it should support:
+  - remote activation
+  - pulling or pushing magical targets
+  - triggering distant mechanisms
+- mana and cooldown are optional balancing tools, not the identity of the loop
+
+Implementation note:
+
+- existing projectile code can be reused when distance interaction adds clarity
+- do not introduce multiple spell schools for MVP unless explicitly approved
 
 ### Quest flow
 
-- `mentor intro / 3 seals / boss unlock / return to mentor`
-- quest progression should sit above movement/FSM/input/loot, not inside them
+- `mentor intro / mechanism chain / final ritual / completion`
+- quest progression should sit above movement, FSM, interaction, and environmental systems, not inside them
 - use existing systems as triggers:
 - mentor interaction via `CommunicationAction`
-- seal completion via interaction handler
-- key or reward pickup via `ITakable` or trigger collector, depending on pickup type
-- movement/combat states remain execution layer only
+- mechanism completion via activators and listeners
+- final ritual completion via combined world-state checks
+- movement and action states remain execution layer only
 
-### Consumables
+### Data
 
-- `mana orb / heal flask / coins`
-- author each as `ItemSetup`
-- register persistent items in `ItemsDatabase`
-- `coins`: manual or auto pickup, update `InventoryService`
-- `mana orb` / `heal flask`: prefer trigger pickup with immediate effect apply
-- use separate consumable effect logic for `heal` and `mana`; inventory stays storage, not effect logic
+- use `ScriptableObject` assets where tuning is useful:
+  - interaction strength
+  - slider timings
+  - gate timings
+  - hazard cadence
+  - quest text
+- use serialized scene references where the setup is location-specific and not worth abstracting into content databases
 
 ## Suggested architecture by mechanic
 
-1. `Movement`: reuse as-is; only add transitions if combat or interaction must temporarily lock locomotion.
-2. `Combat`: add new states first, then input actions, then spell data assets.
-3. `Interaction`: build one interaction controller over raycaster + markable + communication input.
-4. `Quest`: build quest state/progression as orchestration layer listening to interactions and pickups.
-5. `Loot`: keep world items data-driven through `ItemSetup`; support both manual loot and trigger consumables.
+1. `Movement`: reuse as-is; only add state gates when an interaction needs temporary lock or alignment.
+2. `Interaction`: keep one forward interaction controller over raycaster + markable + input.
+3. `Environmental mechanisms`: build composable activators, listeners, and state controllers.
+4. `Quest`: keep as orchestration over mechanism completion and world-state milestones.
+5. `Magic support`: reuse spell/runtime pieces only when they strengthen environmental interaction.
+6. `Loot`: keep optional and secondary to the main loop.
 
 ## Integration order
 
-1. Add combat input actions in `MainInput.inputactions`.
-2. Add combat states around `StateType.Aim` / `Attack`.
-3. Add shared interaction controller using raycast + filter + `IMarkable`.
-4. Split pickups into manual interaction pickups and trigger consumables.
-5. Hook stored pickups through `ITakable` into `InventoryService`.
-6. Add quest progression that reacts to mentor talk, seal activation, boss clear, and return talk.
+1. Lock the `push / pull / press` interaction grammar.
+2. Add or adapt interaction targets and environmental components.
+3. Add the first full courtyard mechanism chain.
+4. Add timed state changes and hazard pressure.
+5. Add quest progression around mechanism milestones and final ritual.
+6. Add optional remote magic interaction if it improves readability or pacing.
 
 ## Requirements
 
 1. Keep character movement inside `MovementModule` + movement FSM.
 2. Put new player actions behind `MainInput`, not raw Unity input calls.
-3. Use `StateType` and FSM states for cast, aim, looting, and communication gating.
-4. Reuse `ITakable` only for manual pickups; allow trigger-based consumables for mana and heal.
-5. Keep item content in `ItemSetup` / `ItemsDatabase`; keep runtime counts in `InventoryService`.
-6. Inspector work later:
-7. assign `MainInput.inputactions` bindings for combat actions
-8. add raycaster component on player interaction root
-9. assign mark visuals on NPC, seal, and manual pickup prefabs
-10. create `ItemSetup` assets for mana, heal, coins, keys if used
-11. add trigger colliders on mana/heal pickup prefabs if using auto-collect
-12. extend character prefab references only through existing serialized module slots or dedicated new components
+3. Use FSM or lightweight compatible gates when interactions must lock or redirect player action.
+4. Reuse the existing raycast interaction path before inventing a second targeting system.
+5. Keep puzzle-critical world logic out of inventory abstractions unless the object is truly a pickup.
+6. Prefer inspector-wired environmental components over a monolithic level script.
+7. Extend character prefab references only through existing serialized module slots or dedicated new components.
 
 ## Unresolved questions
 
-- should `Attack` live under global root or inside a new `Attacking` parent state
-- should seal / NPC interaction share one new `IInteractable` contract, or stay handler-specific
-- should coins also become auto-pickup, or stay manual for stronger interaction feedback
+- should `pull` and `push` be direct object verbs, or modes of one generic interaction component
+- should distance magic be part of the MVP critical path or secondary enrichment
+- should hazards be purely environmental, or should one simple hostile source also be included

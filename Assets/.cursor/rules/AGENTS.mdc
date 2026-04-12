@@ -3,7 +3,15 @@ alwaysApply: true
 ---
 
 - Don't write xml commets for public interfaces
-- Use .cursor\context\context.md as source of information about project
+- Read `Assets/.cursor/context/context.md` first and treat it as the technical source of truth
+- If another plan or prompt conflicts with `Assets/.cursor/context/context.md`, follow the context file and call out the conflicting doc as legacy in your handoff
 - On end of any feachures write a step by step requrenments list, whet it requires to do in inspector, if any
 - Make the plan extremely concie. Sacrifiece grammar for the sake of concision.
 - At the end of each plan, give me a list of unresolved questions, if any.
+- Every agent task that changes files must also create or update a worklog under `Assets/.cursor/docs/worklogs/`
+- Use `Assets/.cursor/docs/WORKLOG_TEMPLATE.md` as the default worklog structure
+- Every worklog must include: summary, files changed, scene/inspector, validation, decision log, follow-ups, commit
+- If a task produces repository changes and the user did not explicitly forbid commits, finish with one commit
+- Allowed commit prefixes are only: `fix:`, `feat:`, `update:`, `refactor:`
+- Commit subjects should be short and reflect the actual change
+- Do not split one scoped task into multiple commits unless the user explicitly asks for it

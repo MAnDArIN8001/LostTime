@@ -1,5 +1,10 @@
 # Stage 3 Full Main Loop Handoff
 
+> Legacy note:
+> This handoff may contain combat-first assumptions from the older vertical slice.
+> Read `Assets/.cursor/context/context.md` first.
+> If any section conflicts with the current courtyard `push / pull / press` direction, the context file wins.
+
 ## Intent
 
 Ship one stable pre-boss route in `Assets/Scenes/SampleScene.unity`:

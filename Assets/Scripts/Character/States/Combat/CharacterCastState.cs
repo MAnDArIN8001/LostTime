@@ -14,12 +14,15 @@ namespace Character.States.Combat
         private readonly Transform _camera;
         private readonly float _castLockDuration;
         private readonly Func<bool> _tryCast;
+        private readonly Func<bool> _isCastAnimationFinished;
         private readonly IAnimationFacade _animationFacade;
         private readonly string _castAnimationParamId;
 
         private float _castLockEndTime;
+        private bool _areTransitionsBlocked;
 
         public bool IsLockFinished => Time.time >= _castLockEndTime;
+        public bool CanExit => IsLockFinished && !_areTransitionsBlocked;
 
         public CharacterCastState(
             StateType stateType,
@@ -28,6 +31,7 @@ namespace Character.States.Combat
             Transform camera,
             float castLockDuration,
             Func<bool> tryCast = null,
+            Func<bool> isCastAnimationFinished = null,
             IAnimationFacade animationFacade = null,
             string castAnimationParamId = null) : base(stateType)
         {
@@ -36,12 +40,14 @@ namespace Character.States.Combat
             _camera = camera;
             _castLockDuration = Mathf.Max(0f, castLockDuration);
             _tryCast = tryCast;
+            _isCastAnimationFinished = isCastAnimationFinished;
             _animationFacade = animationFacade;
             _castAnimationParamId = castAnimationParamId;
         }
 
         public override void Enter()
         {
+            _areTransitionsBlocked = _isCastAnimationFinished != null;
             _movementModule.Stop();
             SnapFacingToCameraForward();
 
@@ -50,6 +56,7 @@ namespace Character.States.Combat
             if (!castSucceeded)
             {
                 _castLockEndTime = Time.time;
+                _areTransitionsBlocked = false;
             }
             else if (!string.IsNullOrWhiteSpace(_castAnimationParamId))
             {
@@ -59,12 +66,18 @@ namespace Character.States.Combat
 
         public override void Update()
         {
+            if (_areTransitionsBlocked && (_isCastAnimationFinished?.Invoke() ?? false))
+            {
+                _areTransitionsBlocked = false;
+            }
+
             _movementModule.Stop();
             ApplyFacingTowardCameraForward();
         }
 
         public override void Exit()
         {
+            _areTransitionsBlocked = false;
             _animationFacade?.Set(_castAnimationParamId, false);
         }
 

@@ -114,7 +114,7 @@ public partial class @MainInput: IInputActionCollection2, IDisposable
                     ""name"": ""CameraMovement"",
                     ""type"": ""Value"",
                     ""id"": ""85a76235-0769-456c-9460-c0bc045eb296"",
-                    ""expectedControlType"": """",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
