@@ -1,0 +1,725 @@
+{
+  "schema_version": "1.1.0",
+  "plan_id": "losttime-quest-system-tutorial",
+  "title": "LostTime quest system and tutorial quests plan",
+  "objective": "Сделать настраиваемую event-driven систему квестов как последовательность шагов, где каждый шаг ожидает доменное событие и продвигает прогресс по заданным условиям. Поверх системы нужно реализовать первые обучающие квесты: три толчка объекта, три подтягивания объекта, три каста заклинания и три попадания в цель, а также UI-компонент, который получает служебные события от квестовой системы и строит текст на экране.",
+  "execution_contract": {
+    "one_leaf_task_one_sub_agent": true,
+    "root_tasks_are_orchestrators": true,
+    "orchestrator_tasks_assignable": false,
+    "leaf_tasks_only": true,
+    "task_must_be_atomic": true,
+    "take_task_only_when_dependencies_completed": true,
+    "subtasks_allowed": true,
+    "commit_changes_sttings": {
+      "commits_allowed": true,
+      "commit_prefixes": [
+        "fix:",
+        "feat:",
+        "update:",
+        "refactor:"
+      ],
+      "commit_subjects": [
+        "short subject"
+      ]
+    },
+    "wide_scope_policy": [
+      "Широкая задача оформляется как orchestration-task.",
+      "В работу уходит только leaf-task.",
+      "Сначала фиксируются runtime-контракты и payload событий, затем wiring в gameplay и UI."
+    ],
+    "parallelism_policy": [
+      "Параллелить только leaf-task без пересечения write_scope.",
+      "Gameplay adapters и UI presenter можно делать параллельно после фиксации event contract.",
+      "Authoring и tutorial content делаются только после стабилизации runtime API."
+    ]
+  },
+  "architecture_guardrails": {
+    "product_shape": "modular monolith with event-driven quest progression service",
+    "patterns": [
+      "interface-driven design",
+      "event-driven",
+      "observer",
+      "data-driven authoring",
+      "presentation through dedicated UI bridge"
+    ],
+    "rules": [
+      "Scene-level обмен сообщениями между gameplay, quest runtime и UI идет через существующий Utils.Events.EventBus и SceneEventBusProvider.",
+      "Quest runtime не должен зависеть от конкретных MonoBehaviour источников событий; gameplay интеграция идет через adapters/bridges.",
+      "Шаг квеста описывается как ожидаемое событие плюс настраиваемые условия завершения и прогресса.",
+      "Тип события, требуемое количество, текст, фильтры и служебные метаданные должны быть сериализуемыми и настраиваемыми.",
+      "UI не читает внутреннее состояние runtime напрямую; UI получает сервисные события через EventBus и строит отображение из payload.",
+      "Tutorial-контент не должен хардкодиться в коде progression; последовательность шагов задается конфигом.",
+      "Система должна поддерживать повторяемые шаги счетчика без дублирования отдельного кода под push, pull, spell и hit.",
+      "Quest system должна быть расширяема для будущих event types без переписывания базового progression loop.",
+      "По итогам реализации агент обязан обновить документацию по коду и руководство пользования в .cursor/docs."
+    ],
+    "anti_goals": [
+      "Без захардкоженного enum-only пайплайна, где каждый новый тип шага требует нового if-else в core runtime.",
+      "Без прямой привязки UI текста к конкретному gameplay объекту или scene singleton.",
+      "Без смешивания tutorial onboarding логики с существующим VerticalSliceQuestProgression.",
+      "Без зависимости базового quest runtime от конкретной сцены, цели или обучающего уровня."
+    ],
+    "module_layout": [
+      ".cursor/docs",
+      "Scripts/Quest/Core",
+      "Scripts/Quest/Runtime",
+      "Scripts/Quest/Authoring",
+      "Scripts/Quest/Integration",
+      "Scripts/Quest/Tutorial",
+      "Scripts/UI"
+    ]
+  },
+  "project_context": {
+    "important_files": [
+      ".cursor/docs",
+      "Scripts/Quest/VerticalSliceQuestProgression.cs",
+      "Scripts/UI/VerticalSliceHudPresenter.cs",
+      "Scripts/UI/InteractionHintEventBusPresenter.cs",
+      "Scripts/Utils/Events/EventBus.cs",
+      "Scripts/Utils/Events/SceneEventBusProvider.cs",
+      "Scripts/Loot/Systems/InteractionController.cs",
+      "QUEST_MECHANICS_IDEAS.md",
+      "QUEST_MECHANICS_PUSH_PULL_PRESS.md"
+    ],
+    "notes": [
+      "В проекте уже используется событийная модель через C# events и event bus presenters.",
+      "Существующий EventBus поддерживает typed publish/subscribe и подходит как транспорт для quest domain events и UI service events.",
+      "Существующий VerticalSliceQuestProgression завязан на конкретный сценарий и не подходит как generic runtime без декомпозиции.",
+      "Для новой системы стоит сохранить совместимость по стилю с текущими MonoBehaviour authoring компонентами и TMP-based UI presenters.",
+      "Документация по архитектуре и инструкции использования должны храниться в .cursor/docs рядом с остальными проектными материалами."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "LT-QUEST-001",
+      "title": "Quest runtime contracts orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [],
+      "subtasks": [
+        "LT-QUEST-001A",
+        "LT-QUEST-001B",
+        "LT-QUEST-001C"
+      ],
+      "scope_paths": [
+        "Scripts/Quest/Core",
+        "Scripts/Quest/Runtime"
+      ],
+      "goal": "Зафиксировать базовые контракты системы квестов: описание события, шага, прогресса и сервисных уведомлений для UI и gameplay."
+    },
+    {
+      "id": "LT-QUEST-001A",
+      "title": "Quest event vocabulary",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Core"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Core"
+      ],
+      "goal": "Определить расширяемый словарь событий квестов: event id/type, source id, target id, numeric progress delta, optional context payload. Начальный набор должен покрывать push, pull, spell cast и target hit."
+    },
+    {
+      "id": "LT-QUEST-001B",
+      "title": "Step definition and progress rules",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Core",
+        "Scripts/Quest/Authoring"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Core",
+        "Scripts/Quest/Authoring"
+      ],
+      "goal": "Описать сериализуемую модель шага квеста: display name, description template, required event, required count, filters, optional auto-start, completion behavior и правила накопления прогресса."
+    },
+    {
+      "id": "LT-QUEST-001C",
+      "title": "Quest service events for presentation",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Core",
+        "Scripts/Quest/Runtime"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Core",
+        "Scripts/Quest/Runtime"
+      ],
+      "goal": "Зафиксировать payload сервисных событий для UI: quest started, active step changed, step progress changed, quest completed. Payload должен включать ids, текущие и целевые значения, форматируемый текст и флаги видимости, а публикация должна идти через EventBus."
+    },
+    {
+      "id": "LT-QUEST-002",
+      "title": "Quest progression service orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-QUEST-001"
+      ],
+      "subtasks": [
+        "LT-QUEST-002A",
+        "LT-QUEST-002B",
+        "LT-QUEST-002C"
+      ],
+      "scope_paths": [
+        "Scripts/Quest/Runtime"
+      ],
+      "goal": "Сделать generic runtime service, который принимает quest definition, подписывается на quest events через EventBus, обновляет прогресс активного шага и публикует служебные события в ту же шину."
+    },
+    {
+      "id": "LT-QUEST-002A",
+      "title": "Quest session state machine",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Runtime"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Runtime"
+      ],
+      "goal": "Реализовать runtime session с состояниями idle, running step, completed и поддержкой последовательного продвижения по списку шагов."
+    },
+    {
+      "id": "LT-QUEST-002B",
+      "title": "Event matching and progress accumulation",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001A",
+        "LT-QUEST-002A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Runtime"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Runtime"
+      ],
+      "goal": "Сделать matching входящих событий по типу и фильтрам шага, инкремент прогресса, защиту от лишних событий и переход к следующему шагу при достижении required count."
+    },
+    {
+      "id": "LT-QUEST-002C",
+      "title": "Service notification publisher",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001C",
+        "LT-QUEST-002A",
+        "LT-QUEST-002B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Runtime"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Runtime"
+      ],
+      "goal": "Публиковать стабильные служебные события через EventBus при старте квеста, обновлении прогресса шага, смене шага и завершении квеста."
+    },
+    {
+      "id": "LT-QUEST-003",
+      "title": "Gameplay event adapters orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 3,
+      "dependencies": [
+        "LT-QUEST-001",
+        "LT-QUEST-002"
+      ],
+      "subtasks": [
+        "LT-QUEST-003A",
+        "LT-QUEST-003B",
+        "LT-QUEST-003C",
+        "LT-QUEST-003D"
+      ],
+      "scope_paths": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay",
+        "Scripts/Loot"
+      ],
+      "goal": "Связать gameplay действия с quest runtime через адаптеры, которые публикуют доменные quest events в EventBus без внедрения квестовой логики в сами механики."
+    },
+    {
+      "id": "LT-QUEST-003A",
+      "title": "Push action event bridge",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001A",
+        "LT-QUEST-002B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay"
+      ],
+      "goal": "Поймать подтвержденное gameplay действие push и пробросить его в quest event stream с настраиваемыми source/target identifiers."
+    },
+    {
+      "id": "LT-QUEST-003B",
+      "title": "Pull action event bridge",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001A",
+        "LT-QUEST-002B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay"
+      ],
+      "goal": "Поймать подтвержденное gameplay действие pull и пробросить его в quest event stream с теми же общими контрактами."
+    },
+    {
+      "id": "LT-QUEST-003C",
+      "title": "Spell cast event bridge",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001A",
+        "LT-QUEST-002B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay",
+        "Scripts/Combat"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay",
+        "Scripts/Combat"
+      ],
+      "goal": "Поймать успешный каст заклинания на уровне gameplay confirmation и перевести его в quest event."
+    },
+    {
+      "id": "LT-QUEST-003D",
+      "title": "Target hit event bridge",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001A",
+        "LT-QUEST-002B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay",
+        "Scripts/Combat"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Integration",
+        "Scripts/Gameplay",
+        "Scripts/Combat"
+      ],
+      "goal": "Поймать подтвержденное попадание в цель и публиковать отдельный quest event, пригодный для tutorial step на точность."
+    },
+    {
+      "id": "LT-QUEST-004",
+      "title": "Authoring and content orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-QUEST-002"
+      ],
+      "subtasks": [
+        "LT-QUEST-004A",
+        "LT-QUEST-004B",
+        "LT-QUEST-004C"
+      ],
+      "scope_paths": [
+        "Scripts/Quest/Authoring",
+        "Scripts/Quest/Tutorial"
+      ],
+      "goal": "Сделать authoring слой и первую конфигурацию tutorial-квестов как данных, а не как захардкоженную последовательность в runtime."
+    },
+    {
+      "id": "LT-QUEST-004A",
+      "title": "Quest definition authoring asset",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-001B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Authoring"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Authoring"
+      ],
+      "goal": "Сделать сериализуемый asset или authoring component для списка шагов квеста с конфигурируемыми полями текста, события, required count и фильтров."
+    },
+    {
+      "id": "LT-QUEST-004B",
+      "title": "Tutorial quest definition",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-004A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Tutorial",
+        "Resources"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Tutorial",
+        "Resources"
+      ],
+      "goal": "Собрать первую последовательность tutorial-шагов: push x3, pull x3, spell cast x3, target hit x3. Все counts, тексты и event filters должны быть редактируемыми."
+    },
+    {
+      "id": "LT-QUEST-004C",
+      "title": "Authoring validation guards",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-004A",
+        "LT-QUEST-004B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Authoring",
+        "Scripts/Quest/Tutorial"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Authoring",
+        "Scripts/Quest/Tutorial"
+      ],
+      "goal": "Добавить проверки на пустой event id, невалидные required count, битые шаблоны текста и пустые ссылки на quest definition."
+    },
+    {
+      "id": "LT-QUEST-005",
+      "title": "Quest UI presentation orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-QUEST-001C",
+        "LT-QUEST-002C"
+      ],
+      "subtasks": [
+        "LT-QUEST-005A",
+        "LT-QUEST-005B"
+      ],
+      "scope_paths": [
+        "Scripts/UI"
+      ],
+      "goal": "Добавить UI-компонент, который слушает квестовые сервисные события и отображает активный шаг, прогресс и завершение в читаемом виде."
+    },
+    {
+      "id": "LT-QUEST-005A",
+      "title": "Quest HUD presenter",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-002C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/UI"
+      ],
+      "write_scope": [
+        "Scripts/UI"
+      ],
+      "goal": "Сделать MonoBehaviour presenter для TMP/UI labels, который подписывается на служебные quest events через EventBus и собирает текст вида 'Push objects: 1/3' на основе payload, а не собственного состояния."
+    },
+    {
+      "id": "LT-QUEST-005B",
+      "title": "Quest presentation policy",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-005A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/UI",
+        "Scripts/Quest/Core"
+      ],
+      "write_scope": [
+        "Scripts/UI",
+        "Scripts/Quest/Core"
+      ],
+      "goal": "Зафиксировать форматирование текста, правила скрытия UI без активного квеста, отображение completed state и optional локализационные placeholders."
+    },
+    {
+      "id": "LT-QUEST-006",
+      "title": "Scene wiring and bootstrap orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-QUEST-003",
+        "LT-QUEST-004",
+        "LT-QUEST-005"
+      ],
+      "subtasks": [
+        "LT-QUEST-006A",
+        "LT-QUEST-006B"
+      ],
+      "scope_paths": [
+        "Scripts/Quest/Tutorial",
+        "Scripts/UI",
+        "Scenes"
+      ],
+      "goal": "Подключить runtime service, tutorial definition, gameplay adapters и UI presenter в сцене так, чтобы обучение стартовало и прогрессировало без ручного дергания из кода."
+    },
+    {
+      "id": "LT-QUEST-006A",
+      "title": "Tutorial quest bootstrap",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-004B",
+        "LT-QUEST-002C"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Tutorial"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Tutorial"
+      ],
+      "goal": "Сделать scene-level bootstrap или installer, который запускает tutorial quest definition, резолвит SceneEventBusProvider и связывает ее с event source/runtime service."
+    },
+    {
+      "id": "LT-QUEST-006B",
+      "title": "Scene references and prefab wiring",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-003A",
+        "LT-QUEST-003B",
+        "LT-QUEST-003C",
+        "LT-QUEST-003D",
+        "LT-QUEST-005A"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scenes",
+        "Prefabs",
+        "Scripts/UI"
+      ],
+      "write_scope": [
+        "Scenes",
+        "Prefabs",
+        "Scripts/UI"
+      ],
+      "goal": "Проставить ссылки на bridges, bootstrap и UI presenter в сцене или prefab wiring, не создавая скрытых runtime зависимости через FindObjectOfType."
+    },
+    {
+      "id": "LT-QUEST-007",
+      "title": "Verification orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-QUEST-006"
+      ],
+      "subtasks": [
+        "LT-QUEST-007A",
+        "LT-QUEST-007B"
+      ],
+      "scope_paths": [
+        "Scripts/Quest",
+        "Scripts/UI"
+      ],
+      "goal": "Проверить корректность progression flow, защиту от лишних событий и соответствие UI отображаемому прогрессу."
+    },
+    {
+      "id": "LT-QUEST-007A",
+      "title": "Runtime tests for progression rules",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-002B",
+        "LT-QUEST-004B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/Quest/Runtime",
+        "Scripts/Quest/Tutorial"
+      ],
+      "write_scope": [
+        "Scripts/Quest/Runtime",
+        "Scripts/Quest/Tutorial"
+      ],
+      "goal": "Покрыть тестами сценарии: правильный event advances progress, неверный event ignored, required count completes step, final step completes quest."
+    },
+    {
+      "id": "LT-QUEST-007B",
+      "title": "Presenter verification and manual checklist",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-005B",
+        "LT-QUEST-006B"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        "Scripts/UI",
+        "Scenes"
+      ],
+      "write_scope": [
+        "Scripts/UI",
+        "Scenes"
+      ],
+      "goal": "Проверить, что UI показывает корректный active objective, счетчик прогресса, смену шага и скрытие/завершение без рассинхрона с quest runtime."
+    },
+    {
+      "id": "LT-QUEST-008",
+      "title": "Documentation orchestration",
+      "task_type": "orchestration",
+      "status": "pending",
+      "atomic": false,
+      "assignable": false,
+      "multi_agent_allowed": true,
+      "max_parallel_agents": 2,
+      "dependencies": [
+        "LT-QUEST-006",
+        "LT-QUEST-007"
+      ],
+      "subtasks": [
+        "LT-QUEST-008A",
+        "LT-QUEST-008B"
+      ],
+      "scope_paths": [
+        ".cursor/docs"
+      ],
+      "goal": "Зафиксировать техническую документацию по реализованной системе и руководство пользования для дальнейшей работы команды."
+    },
+    {
+      "id": "LT-QUEST-008A",
+      "title": "Technical documentation for quest system",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-006"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        ".cursor/docs",
+        "Scripts/Quest",
+        "Scripts/UI"
+      ],
+      "write_scope": [
+        ".cursor/docs"
+      ],
+      "goal": "Обновить в .cursor/docs техническую документацию по квестовой системе: EventBus wiring, runtime flow, authoring model, payload событий, UI presenter и точки расширения."
+    },
+    {
+      "id": "LT-QUEST-008B",
+      "title": "User guide for quest authoring and setup",
+      "task_type": "leaf",
+      "status": "pending",
+      "atomic": true,
+      "assignable": true,
+      "dependencies": [
+        "LT-QUEST-006"
+      ],
+      "subtasks": [],
+      "scope_paths": [
+        ".cursor/docs",
+        "Scripts/Quest/Authoring",
+        "Scripts/Quest/Tutorial",
+        "Scenes"
+      ],
+      "write_scope": [
+        ".cursor/docs"
+      ],
+      "goal": "Обновить в .cursor/docs руководство пользования: как создать новый квест, как настроить шаги, как подключить event bridges, как вывести прогресс в UI и как проверить работу в сцене."
+    }
+  ]
+}

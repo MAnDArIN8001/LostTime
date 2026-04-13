@@ -1,472 +1,184 @@
-# Quest Setup Guide
-
-> Legacy note:
-> This guide documents the older combat-first seal and guardian setup.
-> It is not the current project source of truth.
-> Before using this guide, read `Assets/.cursor/context/context.md`.
-> If this guide conflicts with the current courtyard `push / pull / press` direction, treat this file as legacy reference only.
+# Quest System Setup Guide
 
 ## Purpose
 
-This document explains how to configure the quest part of the current MVP scene in Unity based on the implemented flow and the current project architecture.
+This guide explains how to wire the new quest system in Unity.
 
-The guide is based on:
+It covers:
 
-- `Assets/Scripts/Quest/VerticalSliceQuestProgression.cs`
-- `Assets/Scripts/UI/VerticalSliceHudPresenter.cs`
-- `Assets/Scripts/UI/VerticalSliceWinScreen.cs`
-- `Assets/Scripts/Loot/Systems/InteractionController.cs`
-- `Assets/.cursor/tasks/game-plan/03_Realization_Steps.md`
-- `Assets/.cursor/tasks/realization-steps/03_Stage3_Full_Main_Loop.md`
+- `EventBus` wiring
+- runtime flow
+- authoring
+- tutorial setup
+- UI hookup
 
-## Current Quest Flow
+This replaces the old combat-first quest guide.
 
-The current quest implementation is no longer the old short Stage 2 chain.
+## What The System Does
 
-The actual flow in code is:
+The quest system is an ordered list of steps.
 
-1. `TalkToMentor`
-2. `RestoreSeals`
-3. `UnlockArena`
-4. `DefeatGuardian`
-5. `ReturnToMentor`
-6. `Completed`
+Each step waits for a gameplay event, tracks progress, and advances when the configured count is reached.
 
-That means the scene should be configured around this route:
+For the first tutorial quest, the expected sequence is:
 
-1. Player talks to mentor.
-2. Seal encounters become active.
-3. Player defeats enemies tied to seals.
-4. Player restores all seals.
-5. Arena opens.
-6. Player defeats guardian.
-7. Player returns to mentor.
-8. Quest completes.
+1. push an object 3 times
+2. pull an object 3 times
+3. cast a spell 3 times
+4. hit a target 3 times
 
-## Important Architecture Note
+## Before You Start
 
-Quest logic in this project is an orchestration layer.
+Make sure the scene has:
 
-It should not be embedded inside:
+- the shared `EventBus`
+- a `SceneEventBusProvider`
+- quest runtime bootstrap or installer
+- gameplay adapters for the events you want to count
+- the quest UI presenter
 
-- movement logic
-- input logic
-- combat logic
-- loot logic
+If any of those pieces are missing, the quest can exist in data but never receive progress events.
 
-Instead, `VerticalSliceQuestProgression` listens to events coming from:
+## Step 1. Create The Quest Definition
 
-- `InteractionTarget` for mentor and seals
-- `IEncounterEnemy.Died` for encounter enemies and guardian
+Create a serialized authoring component.
 
-This means correct scene wiring is more important than adding extra quest scripts.
+Current components:
 
-## Main Components Involved
+- `Quest.Authoring.QuestDefinitionAuthoring` for generic ordered step lists
+- `Quest.Tutorial.TutorialQuestDefinitionAuthoring` for the first tutorial flow
 
-### 1. Quest runtime
+For each step, configure:
 
-- `Assets/Scripts/Quest/VerticalSliceQuestProgression.cs`
+- step title
+- user-facing text
+- expected event type
+- required count
+- filters for source or target
+- optional template or payload overrides
 
-This is the main quest controller for the scene.
+For the tutorial quest, create four steps with required count set to `3`.
 
-It stores:
+## Step 2. Wire Gameplay Events Into EventBus
 
-- mentor reference
-- seal objective list
-- arena unlock targets
-- guardian reference
-- current quest step
+Gameplay must publish quest-relevant events to the shared bus.
 
-### 2. Interaction system
+The quest runtime should not listen to specific scene objects directly.
 
-- `Assets/Scripts/Loot/Systems/InteractionController.cs`
+Use adapters for:
 
-This is responsible for:
+- `PushQuestEventPublisher`
+- `PullQuestEventPublisher`
+- `CharacterSpellCastQuestEventPublisher`
+- `SpellHitQuestEventPublisher`
 
-- detecting interactable targets through raycast
-- showing interaction hints
-- calling interact on focused objects
+Keep those adapters thin:
 
-Without it, mentor and seal interactions will not work.
+- detect the gameplay action
+- build a quest event payload
+- publish it to `EventBus`
 
-### 3. HUD
+Do not put quest progress rules inside the gameplay mechanics themselves.
 
-- `Assets/Scripts/UI/VerticalSliceHudPresenter.cs`
+## Step 3. Connect The Runtime
 
-This displays:
+The quest runtime is `Quest.Runtime.EventBusQuestRunner`.
 
-- HP
-- MP
-- current objective
-- interaction hint
+It should:
 
-### 4. Win screen
+- read the active quest definition
+- subscribe to quest gameplay events
+- track the active step only
+- publish service events when progress changes
+- advance to the next step automatically when the count is met
 
-- `Assets/Scripts/UI/VerticalSliceWinScreen.cs`
+The runtime flow should be strictly sequential unless a future quest definition says otherwise.
 
-This listens for quest completion and shows a final panel.
+## Step 4. Hook Up Tutorial Content
 
-## What Must Exist In The Scene
+Author the tutorial as data, not as hardcoded progression logic.
 
-To make the quest work correctly, the scene must contain:
+Recommended tutorial setup:
 
-1. Player with interaction and combat wiring.
-2. Mentor object with `InteractionTarget`.
-3. One or more seal objects with `InteractionTarget`.
-4. One encounter enemy per seal, or a valid encounter root.
-5. Arena unlock objects that are hidden until seals are restored.
-6. Guardian boss implementing `IEncounterEnemy`.
-7. Quest object with `VerticalSliceQuestProgression`.
-8. HUD object with `VerticalSliceHudPresenter`.
-9. Optional win screen object with `VerticalSliceWinScreen`.
+- step 1: push x3
+- step 2: pull x3
+- step 3: spell cast x3
+- step 4: target hit x3
 
-## Step-By-Step Inspector Setup
+For each step, make sure the following are editable in the asset:
 
-## Step 1. Create or select the quest object
+- text shown in the UI
+- required count
+- event type
+- filter values
+- completion behavior
 
-In the scene, create a dedicated object such as:
+If you need to tune the tutorial later, update the asset instead of editing runtime code.
 
-- `QuestController`
+## Step 5. Hook Up The UI
 
-Add component:
+Add `UI.QuestEventBusPresenter` to the HUD.
 
-- `VerticalSliceQuestProgression`
+The presenter should:
 
-This object will own the full quest state.
+- subscribe to service events from the quest system
+- build the text from the payload
+- show `current / required` progress
+- switch text when the active step changes
+- hide or clear itself when the quest is finished, depending on scene needs
 
-## Step 2. Assign the mentor
+Example output:
 
-On `VerticalSliceQuestProgression`, assign:
+- `Push objects: 1/3`
+- `Pull objects: 2/3`
+- `Cast spells: 3/3`
+- `Hit targets: 1/3`
 
-- `_mentorTarget`
+The presenter should not inspect runtime internals directly.
 
-Expected target:
+## Step 6. Bootstrap The Scene
 
-- a scene object representing the mentor
-- containing `InteractionTarget`
-- containing a collider so the interaction ray can hit it
+Scene bootstrap should connect the pieces in this order:
 
-What this does:
+1. resolve `SceneEventBusProvider`
+2. resolve or create `Quest.Runtime.EventBusQuestRunner`
+3. bind the quest definition
+4. register gameplay adapters
+5. register the UI presenter
+6. start the tutorial quest
 
-- first mentor interaction starts the quest
-- final mentor interaction completes the quest
+Avoid hidden singleton-style wiring.
+The goal is explicit scene setup that can be debugged from the inspector.
 
-## Step 3. Configure seals in `_seals`
+## Validation Checklist
 
-This is the most important part of the setup.
+Test the scene with the following checks:
 
-In `VerticalSliceQuestProgression`:
+1. pushing an object increases only the push step
+2. pulling an object increases only the pull step
+3. spell casts do not affect target-hit progress
+4. target hits do not affect spell-cast progress
+5. the UI shows the active step and current count
+6. the quest advances when the required count is reached
+7. the UI updates on step transition
+8. the final step completes the quest
 
-1. Set `_seals` array size to the number of seal objectives you want.
-2. For MVP full loop, set it to `3`.
+## Common Mistakes
 
-For each seal entry, configure:
+- publishing quest logic from gameplay objects instead of adapters
+- reading quest runtime state directly from UI
+- hardcoding tutorial text in the presenter
+- using separate buses for gameplay and UI
+- making the quest depend on one specific scene object
+- forgetting to expose counts and filters as data
 
-- `Name`
-- `SealTarget`
-- `EncounterBehaviour`
-- `EncounterRoot`
+## If You Add More Quests Later
 
-### Meaning of each field
+Keep using the same model:
 
-`Name`
+- define ordered steps in data
+- publish gameplay events through `EventBus`
+- let the runtime match and count events
+- let the UI render service payloads
 
-- editor-only readable label for the seal objective
-
-`SealTarget`
-
-- the seal object in the scene
-- must have `InteractionTarget`
-- must have collider
-
-`EncounterBehaviour`
-
-- component implementing `IEncounterEnemy`
-- usually the enemy controller or encounter script linked to that seal
-
-`EncounterRoot`
-
-- root object that should be activated when the mentor starts the trial
-- use this if the whole encounter should be enabled as one root
-
-Important behavior:
-
-- on quest start, seal encounters are disabled until mentor interaction
-- after talking to mentor, quest activates encounter roots
-- player can restore a seal only if its encounter is dead, unless no encounter is assigned
-
-## Step 4. Configure arena unlock
-
-In `VerticalSliceQuestProgression`, assign:
-
-- `_arenaUnlockTargets`
-- `_arenaUnlockDelay`
-
-`_arenaUnlockTargets` should contain objects that must appear or activate after all seals are restored, for example:
-
-- arena gate open object
-- portal
-- arena blocker removal object
-- boss entrance trigger
-
-Important behavior:
-
-- these objects are disabled in `OnEnable`
-- after all seals are restored, they are enabled after `_arenaUnlockDelay`
-- quest then advances to guardian fight
-
-Recommended:
-
-- keep these objects disabled by quest orchestration only
-- do not manually enable them elsewhere unless intentionally overriding flow
-
-## Step 5. Assign guardian boss
-
-In `VerticalSliceQuestProgression`, assign:
-
-- `_guardianEncounter`
-
-Expected target:
-
-- a component implementing `IEncounterEnemy`
-
-What this does:
-
-- when the guardian dies during `DefeatGuardian`, quest advances to `ReturnToMentor`
-
-If this reference is missing:
-
-- the quest will not advance properly after arena unlock
-
-## Step 6. Configure mentor object
-
-The mentor object should have:
-
-1. collider
-2. `InteractionTarget`
-3. optional mark/highlight visual
-4. optional dialog presenter or UnityEvent-based dialog handoff
-
-Requirements:
-
-- object must be hittable by the player's interaction ray
-- interaction prompt should be readable
-- if mentor becomes unavailable after first interaction, final quest completion can break
-
-The quest code tries to recover final mentor interaction by resetting interaction state when needed, but proper mentor setup is still required.
-
-## Step 7. Configure seal objects
-
-Each seal object should have:
-
-1. collider
-2. `InteractionTarget`
-3. optional mark/highlight visual
-4. single-use interaction behavior if desired
-
-Requirements:
-
-- the player must be able to focus the seal with the interaction ray
-- the seal must stay assigned to the matching `_seals` element
-
-Important behavior:
-
-- if a seal has no assigned encounter, it is considered immediately restorable
-- that is useful for tests, but can accidentally skip intended combat gating
-
-## Step 8. Configure encounter enemies
-
-Each encounter used by the quest should:
-
-1. implement `IEncounterEnemy`
-2. fire its death flow correctly
-3. be referenced in the matching seal objective
-
-You can set either:
-
-- `EncounterBehaviour` only
-- `EncounterRoot` only
-- both, when behavior lives under a root object
-
-Recommended setup:
-
-- `EncounterBehaviour` points to the component reporting `Died` and `IsDead`
-- `EncounterRoot` points to the root object that should be enabled or disabled
-
-## Step 9. Configure player interaction
-
-The player side must include:
-
-- `InteractionController`
-- `DirectionalRaycaster`
-
-`InteractionController` should be correctly wired so that it can:
-
-- detect mentor
-- detect seals
-- show focus mark
-- show interaction hint
-- call interaction on the focused target
-
-If this is broken, the quest code may be correct but progression will feel non-functional.
-
-Check:
-
-1. ray origin and direction
-2. layer filtering
-3. collider placement
-4. target visibility and reachable range
-
-## Step 10. Configure HUD
-
-Add or select a HUD object with:
-
-- `VerticalSliceHudPresenter`
-
-Assign:
-
-- `_characterVitals`
-- `_characterMana`
-- `_questProgression`
-- `_interactionController`
-- `_healthLabel`
-- `_manaLabel`
-- `_objectiveLabel`
-- `_interactionHintLabel`
-
-This allows the HUD to react to:
-
-- health changes
-- mana changes
-- objective changes
-- interaction hint changes
-
-Without `_questProgression`, objective text will not update.
-
-Without `_interactionController`, interaction hint text will not update.
-
-## Step 11. Configure win screen
-
-If you want final completion feedback, add or configure:
-
-- `VerticalSliceWinScreen`
-
-Assign:
-
-- `_questProgression`
-- `_winPanelRoot`
-
-What this does:
-
-- when the quest reaches `Completed`, the win panel is shown
-
-## Practical Wiring Order
-
-Use this order in Unity to avoid missing references:
-
-1. Set up mentor object.
-2. Set up all seal objects.
-3. Set up all encounter enemies.
-4. Set up guardian.
-5. Create or select quest object.
-6. Fill `_mentorTarget`.
-7. Fill `_seals`.
-8. Fill `_arenaUnlockTargets`.
-9. Fill `_guardianEncounter`.
-10. Connect player `InteractionController`.
-11. Connect HUD.
-12. Connect win screen.
-
-## Play Mode Validation Checklist
-
-Run the scene and verify the following in order:
-
-1. Scene starts with objective text asking the player to talk to the mentor.
-2. Looking at mentor shows highlight and interaction hint.
-3. Interacting with mentor advances the quest and activates seal encounters.
-4. Seal encounters are not active before mentor talk.
-5. Defeating an encounter allows the connected seal to be restored.
-6. Restoring one seal updates objective progress count.
-7. Restoring all seals activates arena unlock targets after delay.
-8. Objective changes to guardian fight.
-9. Killing guardian changes objective to return to mentor.
-10. Talking to mentor again completes the quest.
-11. Win panel appears if `VerticalSliceWinScreen` is wired.
-
-## Common Failure Cases
-
-### Mentor or seal cannot be interacted with
-
-Possible causes:
-
-- missing collider
-- missing `InteractionTarget`
-- wrong layer mask
-- raycaster not aimed correctly
-- object not under the expected interaction path
-
-### Seal restores before enemy is defeated
-
-Possible cause:
-
-- no valid `EncounterBehaviour` assigned for that seal
-
-### Seal never becomes restorable
-
-Possible causes:
-
-- assigned encounter does not implement `IEncounterEnemy`
-- death event is not firing
-- wrong encounter linked to the seal
-
-### Arena never opens
-
-Possible causes:
-
-- not all seals are counted as restored
-- `_arenaUnlockTargets` not assigned
-- quest flow blocked before `UnlockArena`
-
-### Guardian death does not advance quest
-
-Possible causes:
-
-- `_guardianEncounter` missing
-- guardian does not implement `IEncounterEnemy`
-- guardian death callback is not firing
-
-### Objective text does not update
-
-Possible causes:
-
-- `VerticalSliceHudPresenter._questProgression` missing
-- objective TMP label missing
-
-## Recommendation
-
-For new scene setup, prefer the current `_seals` array workflow.
-
-Do not rely on legacy fields:
-
-- `_sealTarget`
-- `_beastEncounter`
-- `_beastRoot`
-
-Those exist only for backward compatibility with an older Stage 2 scene layout.
-
-## Summary
-
-To configure the quest correctly, you do not need a separate quest framework.
-
-You need to correctly wire scene references around `VerticalSliceQuestProgression`:
-
-1. mentor
-2. seals
-3. encounters
-4. arena unlock objects
-5. guardian
-6. interaction controller
-7. HUD
-8. win screen
-
-If all of these references are correct, the quest flow should work as designed from start to finish.
+That keeps new quests cheap to author and easy to debug.

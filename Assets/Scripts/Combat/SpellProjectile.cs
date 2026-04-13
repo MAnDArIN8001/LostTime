@@ -18,6 +18,7 @@ namespace Combat
         private bool _initialized;
 
         public event Action<Collider> Hit;
+        public GameObject Caster => _caster;
 
         public void Initialize(Vector3 direction, float speed, float damage, float lifetime, GameObject caster)
         {

@@ -2,6 +2,7 @@ using System;
 using Character.Modules.Movement;
 using Combat.Data;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Combat
 {
@@ -11,7 +12,8 @@ namespace Combat
         [SerializeField] private ProjectileSpellSetup _spellSetup;
         [SerializeField] private CharacterMana _mana;
         [SerializeField] private Transform _castOrigin;
-        [SerializeField] private Transform _forwardOverride;
+        [FormerlySerializedAs("_forwardOverride")]
+        [SerializeField] private Transform _aim;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource _audioSource;
@@ -86,9 +88,9 @@ namespace Combat
 
         private Transform ResolveProjectileForwardTransform()
         {
-            if (_forwardOverride != null)
+            if (_aim != null)
             {
-                return _forwardOverride;
+                return _aim;
             }
 
             var movement = GetComponentInParent<MovementModule>();
