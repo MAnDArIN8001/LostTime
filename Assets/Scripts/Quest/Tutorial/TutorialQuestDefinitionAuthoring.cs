@@ -1,82 +1,291 @@
+using System;
+using System.Collections.Generic;
+using Quest.Authoring;
 using Quest.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Quest.Tutorial
 {
+    [RequireComponent(typeof(QuestDefinitionAuthoring))]
     [DisallowMultipleComponent]
     public sealed class TutorialQuestDefinitionAuthoring : MonoBehaviour, IQuestDefinitionSource
     {
-        [Header("Quest")]
-        [SerializeField] private string _questId = "tutorial.core";
-        [SerializeField] private string _questTitle = "Tutorial";
-        [SerializeField, TextArea] private string _completedText = "Tutorial complete";
+        [SerializeField] private QuestDefinitionAuthoring _authoring;
+        [SerializeField] private bool _applyPresetOnReset = true;
 
-        [Header("Push Step")]
-        [SerializeField, Min(1)] private int _pushRequiredCount = 3;
-        [SerializeField] private string _pushTitle = "Push objects";
-        [SerializeField, TextArea] private string _pushTextFormat = "Push objects: {1}/{2}";
-        [SerializeField] private QuestEventFilter _pushFilter = new() { EventId = QuestEventIds.PushPerformed };
+        [FormerlySerializedAs("_questId")]
+        [SerializeField, HideInInspector]
+        private string _legacyQuestId = string.Empty;
 
-        [Header("Pull Step")]
-        [SerializeField, Min(1)] private int _pullRequiredCount = 3;
-        [SerializeField] private string _pullTitle = "Pull objects";
-        [SerializeField, TextArea] private string _pullTextFormat = "Pull objects: {1}/{2}";
-        [SerializeField] private QuestEventFilter _pullFilter = new() { EventId = QuestEventIds.PullPerformed };
+        [FormerlySerializedAs("_questTitle")]
+        [SerializeField, HideInInspector]
+        private string _legacyQuestTitle = string.Empty;
 
-        [Header("Spell Cast Step")]
-        [SerializeField, Min(1)] private int _spellCastRequiredCount = 3;
-        [SerializeField] private string _spellCastTitle = "Cast spells";
-        [SerializeField, TextArea] private string _spellCastTextFormat = "Cast spells: {1}/{2}";
-        [SerializeField] private QuestEventFilter _spellCastFilter = new() { EventId = QuestEventIds.SpellCast };
+        [FormerlySerializedAs("_completedText")]
+        [SerializeField, HideInInspector]
+        private string _legacyCompletedText = string.Empty;
 
-        [Header("Target Hit Step")]
-        [SerializeField, Min(1)] private int _targetHitRequiredCount = 3;
-        [SerializeField] private string _targetHitTitle = "Hit targets";
-        [SerializeField, TextArea] private string _targetHitTextFormat = "Hit targets: {1}/{2}";
-        [SerializeField] private QuestEventFilter _targetHitFilter = new() { EventId = QuestEventIds.TargetHit };
+        [FormerlySerializedAs("_pushRequiredCount")]
+        [SerializeField, HideInInspector]
+        private int _legacyPushRequiredCount;
+
+        [FormerlySerializedAs("_pushTitle")]
+        [SerializeField, HideInInspector]
+        private string _legacyPushTitle = string.Empty;
+
+        [FormerlySerializedAs("_pushTextFormat")]
+        [SerializeField, HideInInspector]
+        private string _legacyPushTextFormat = string.Empty;
+
+        [FormerlySerializedAs("_pushFilter")]
+        [SerializeField, HideInInspector]
+        private QuestEventFilter _legacyPushFilter;
+
+        [FormerlySerializedAs("_pullRequiredCount")]
+        [SerializeField, HideInInspector]
+        private int _legacyPullRequiredCount;
+
+        [FormerlySerializedAs("_pullTitle")]
+        [SerializeField, HideInInspector]
+        private string _legacyPullTitle = string.Empty;
+
+        [FormerlySerializedAs("_pullTextFormat")]
+        [SerializeField, HideInInspector]
+        private string _legacyPullTextFormat = string.Empty;
+
+        [FormerlySerializedAs("_pullFilter")]
+        [SerializeField, HideInInspector]
+        private QuestEventFilter _legacyPullFilter;
+
+        [FormerlySerializedAs("_spellCastRequiredCount")]
+        [SerializeField, HideInInspector]
+        private int _legacySpellCastRequiredCount;
+
+        [FormerlySerializedAs("_spellCastTitle")]
+        [SerializeField, HideInInspector]
+        private string _legacySpellCastTitle = string.Empty;
+
+        [FormerlySerializedAs("_spellCastTextFormat")]
+        [SerializeField, HideInInspector]
+        private string _legacySpellCastTextFormat = string.Empty;
+
+        [FormerlySerializedAs("_spellCastFilter")]
+        [SerializeField, HideInInspector]
+        private QuestEventFilter _legacySpellCastFilter;
+
+        [FormerlySerializedAs("_targetHitRequiredCount")]
+        [SerializeField, HideInInspector]
+        private int _legacyTargetHitRequiredCount;
+
+        [FormerlySerializedAs("_targetHitTitle")]
+        [SerializeField, HideInInspector]
+        private string _legacyTargetHitTitle = string.Empty;
+
+        [FormerlySerializedAs("_targetHitTextFormat")]
+        [SerializeField, HideInInspector]
+        private string _legacyTargetHitTextFormat = string.Empty;
+
+        [FormerlySerializedAs("_targetHitFilter")]
+        [SerializeField, HideInInspector]
+        private QuestEventFilter _legacyTargetHitFilter;
+
+        public QuestDefinitionData[] CreateDefinitions()
+        {
+            var definition = CreateDefinition();
+            return definition != null ? new[] { definition } : Array.Empty<QuestDefinitionData>();
+        }
 
         public QuestDefinitionData CreateDefinition()
         {
-            var steps = new[]
-            {
-                CreateStep("push", _pushTitle, _pushTextFormat, _pushRequiredCount, _pushFilter),
-                CreateStep("pull", _pullTitle, _pullTextFormat, _pullRequiredCount, _pullFilter),
-                CreateStep("spell_cast", _spellCastTitle, _spellCastTextFormat, _spellCastRequiredCount, _spellCastFilter),
-                CreateStep("target_hit", _targetHitTitle, _targetHitTextFormat, _targetHitRequiredCount, _targetHitFilter),
-            };
+            var authoring = ResolveAuthoring();
+            return authoring != null
+                ? authoring.CreateDefinition()
+                : new QuestDefinitionData("tutorial.core", "Tutorial", "Tutorial complete", Array.Empty<QuestStepDto>());
+        }
 
-            return new QuestDefinitionData(_questId, _questTitle, _completedText, steps);
+        [ContextMenu("Apply Tutorial Preset")]
+        public void ApplyTutorialPreset()
+        {
+            var authoring = ResolveAuthoring();
+            if (authoring == null)
+            {
+                return;
+            }
+
+            authoring.SetDefinition(CreateTutorialDefinition());
+        }
+
+        private void Reset()
+        {
+            EnsureAuthoringReference();
+            if (_applyPresetOnReset)
+            {
+                ApplyTutorialPreset();
+            }
         }
 
         private void OnValidate()
         {
-            _pushRequiredCount = Mathf.Max(1, _pushRequiredCount);
-            _pullRequiredCount = Mathf.Max(1, _pullRequiredCount);
-            _spellCastRequiredCount = Mathf.Max(1, _spellCastRequiredCount);
-            _targetHitRequiredCount = Mathf.Max(1, _targetHitRequiredCount);
-
-            _pushFilter ??= new QuestEventFilter { EventId = QuestEventIds.PushPerformed };
-            _pullFilter ??= new QuestEventFilter { EventId = QuestEventIds.PullPerformed };
-            _spellCastFilter ??= new QuestEventFilter { EventId = QuestEventIds.SpellCast };
-            _targetHitFilter ??= new QuestEventFilter { EventId = QuestEventIds.TargetHit };
+            EnsureAuthoringReference();
+            TryMigrateLegacyTutorialDefinition();
         }
 
-        private static QuestStepDefinition CreateStep(
-            string stepId,
-            string title,
-            string textFormat,
-            int requiredCount,
-            QuestEventFilter filter)
+        private QuestDefinitionAuthoring ResolveAuthoring()
         {
-            return new QuestStepDefinition
+            EnsureAuthoringReference();
+            return _authoring;
+        }
+
+        private void EnsureAuthoringReference()
+        {
+            if (_authoring != null)
+            {
+                return;
+            }
+
+            _authoring = GetComponent<QuestDefinitionAuthoring>();
+        }
+
+        private void TryMigrateLegacyTutorialDefinition()
+        {
+            var authoring = ResolveAuthoring();
+            if (authoring == null)
+            {
+                return;
+            }
+
+            var currentDefinition = authoring.GetDefinition();
+            if (currentDefinition.Steps != null && currentDefinition.Steps.Count > 0)
+            {
+                return;
+            }
+
+            if (!HasLegacyTutorialData())
+            {
+                return;
+            }
+
+            authoring.SetDefinition(BuildLegacyTutorialDefinition());
+            ClearLegacyTutorialData();
+        }
+
+        private bool HasLegacyTutorialData()
+        {
+            return !string.IsNullOrWhiteSpace(_legacyQuestId)
+                || !string.IsNullOrWhiteSpace(_legacyQuestTitle)
+                || !string.IsNullOrWhiteSpace(_legacyCompletedText)
+                || _legacyPushFilter != null
+                || _legacyPullFilter != null
+                || _legacySpellCastFilter != null
+                || _legacyTargetHitFilter != null
+                || _legacyPushRequiredCount > 0
+                || _legacyPullRequiredCount > 0
+                || _legacySpellCastRequiredCount > 0
+                || _legacyTargetHitRequiredCount > 0;
+        }
+
+        private QuestDefinitionDto BuildLegacyTutorialDefinition()
+        {
+            var pushRequired = Mathf.Max(1, _legacyPushRequiredCount <= 0 ? 3 : _legacyPushRequiredCount);
+            var pullRequired = Mathf.Max(1, _legacyPullRequiredCount <= 0 ? 3 : _legacyPullRequiredCount);
+            var castRequired = Mathf.Max(1, _legacySpellCastRequiredCount <= 0 ? 3 : _legacySpellCastRequiredCount);
+            var hitRequired = Mathf.Max(1, _legacyTargetHitRequiredCount <= 0 ? 3 : _legacyTargetHitRequiredCount);
+
+            return new QuestDefinitionDto
+            {
+                QuestId = string.IsNullOrWhiteSpace(_legacyQuestId) ? "tutorial.core" : _legacyQuestId.Trim(),
+                Title = string.IsNullOrWhiteSpace(_legacyQuestTitle) ? "Tutorial" : _legacyQuestTitle.Trim(),
+                CompletedText = string.IsNullOrWhiteSpace(_legacyCompletedText) ? "Tutorial complete" : _legacyCompletedText.Trim(),
+                Steps = new List<QuestStepDto>
+                {
+                    CreateLegacyStep("push", _legacyPushTitle, _legacyPushTextFormat, _legacyPushFilter, QuestEventIds.PushPerformed, pushRequired),
+                    CreateLegacyStep("pull", _legacyPullTitle, _legacyPullTextFormat, _legacyPullFilter, QuestEventIds.PullPerformed, pullRequired),
+                    CreateLegacyStep("spell_cast", _legacySpellCastTitle, _legacySpellCastTextFormat, _legacySpellCastFilter, QuestEventIds.SpellCast, castRequired),
+                    CreateLegacyStep("target_hit", _legacyTargetHitTitle, _legacyTargetHitTextFormat, _legacyTargetHitFilter, QuestEventIds.TargetHit, hitRequired),
+                },
+            };
+        }
+
+        private void ClearLegacyTutorialData()
+        {
+            _legacyQuestId = string.Empty;
+            _legacyQuestTitle = string.Empty;
+            _legacyCompletedText = string.Empty;
+            _legacyPushRequiredCount = 0;
+            _legacyPullRequiredCount = 0;
+            _legacySpellCastRequiredCount = 0;
+            _legacyTargetHitRequiredCount = 0;
+            _legacyPushTitle = string.Empty;
+            _legacyPullTitle = string.Empty;
+            _legacySpellCastTitle = string.Empty;
+            _legacyTargetHitTitle = string.Empty;
+            _legacyPushTextFormat = string.Empty;
+            _legacyPullTextFormat = string.Empty;
+            _legacySpellCastTextFormat = string.Empty;
+            _legacyTargetHitTextFormat = string.Empty;
+            _legacyPushFilter = null;
+            _legacyPullFilter = null;
+            _legacySpellCastFilter = null;
+            _legacyTargetHitFilter = null;
+        }
+
+        private static QuestDefinitionDto CreateTutorialDefinition()
+        {
+            return new QuestDefinitionDto
+            {
+                QuestId = "tutorial.core",
+                Title = "Tutorial",
+                CompletedText = "Tutorial complete",
+                Steps = new List<QuestStepDto>
+                {
+                    CreateStep("push", "Push objects", QuestEventIds.PushPerformed),
+                    CreateStep("pull", "Pull objects", QuestEventIds.PullPerformed),
+                    CreateStep("spell_cast", "Cast spells", QuestEventIds.SpellCast),
+                    CreateStep("target_hit", "Hit targets", QuestEventIds.TargetHit),
+                },
+            };
+        }
+
+        private static QuestStepDto CreateStep(string stepId, string title, string eventId)
+        {
+            return new QuestStepDto
             {
                 StepId = stepId,
                 Title = title,
-                ActiveTextFormat = textFormat,
+                ActiveTextFormat = $"{title}: {{1}}/{{2}}",
                 CompletedText = "{0} complete",
-                RequiredCount = Mathf.Max(1, requiredCount),
-                EventFilter = filter != null ? filter.Clone() : new QuestEventFilter(),
                 VisibleInUi = true,
+                ExpectedSignal = new QuestExpectedSignalDto
+                {
+                    EventId = eventId,
+                    RequiredCount = 3,
+                },
+            };
+        }
+
+        private static QuestStepDto CreateLegacyStep(
+            string stepId,
+            string title,
+            string activeTextFormat,
+            QuestEventFilter filter,
+            string fallbackEventId,
+            int requiredCount)
+        {
+            return new QuestStepDto
+            {
+                StepId = stepId,
+                Title = string.IsNullOrWhiteSpace(title) ? stepId : title,
+                ActiveTextFormat = string.IsNullOrWhiteSpace(activeTextFormat) ? "{0}: {1}/{2}" : activeTextFormat,
+                CompletedText = "{0} complete",
+                VisibleInUi = true,
+                ExpectedSignal = filter != null
+                    ? filter.ToExpectedSignal(requiredCount)
+                    : new QuestExpectedSignalDto
+                    {
+                        EventId = fallbackEventId,
+                        RequiredCount = requiredCount,
+                    },
             };
         }
     }

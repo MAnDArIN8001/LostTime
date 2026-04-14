@@ -27,5 +27,20 @@ namespace Quest.Core
                 VisibleInUi = VisibleInUi,
             };
         }
+
+        public QuestStepDto ToDto()
+        {
+            return new QuestStepDto
+            {
+                StepId = StepId,
+                Title = Title,
+                ActiveTextFormat = ActiveTextFormat,
+                CompletedText = CompletedText,
+                ExpectedSignal = EventFilter != null
+                    ? EventFilter.ToExpectedSignal(RequiredCount)
+                    : new QuestExpectedSignalDto { RequiredCount = Mathf.Max(1, RequiredCount) },
+                VisibleInUi = VisibleInUi,
+            };
+        }
     }
 }

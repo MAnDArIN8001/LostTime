@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f55040bd7ab2472e88f8a23d98ff53a6, type: 3}
   m_Name: CharacterSetup
   m_EditorClassIdentifier: 
-  <RunSpeed>k__BackingField: 8
-  <WalkSpeed>k__BackingField: 3
+  <RunSpeed>k__BackingField: 6
+  <WalkSpeed>k__BackingField: 2

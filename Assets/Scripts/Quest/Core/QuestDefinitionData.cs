@@ -8,17 +8,17 @@ namespace Quest.Core
             string questId,
             string title,
             string completedText,
-            QuestStepDefinition[] steps)
+            QuestStepDto[] steps)
         {
             QuestId = string.IsNullOrWhiteSpace(questId) ? "quest" : questId.Trim();
             Title = string.IsNullOrWhiteSpace(title) ? QuestId : title.Trim();
             CompletedText = string.IsNullOrWhiteSpace(completedText) ? $"{Title} complete" : completedText.Trim();
-            Steps = steps ?? Array.Empty<QuestStepDefinition>();
+            Steps = steps ?? Array.Empty<QuestStepDto>();
         }
 
         public string QuestId { get; }
         public string Title { get; }
         public string CompletedText { get; }
-        public QuestStepDefinition[] Steps { get; }
+        public QuestStepDto[] Steps { get; }
     }
 }

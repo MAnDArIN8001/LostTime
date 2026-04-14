@@ -19,9 +19,8 @@ namespace UI
         [SerializeField] private TMP_Text _stateLabel;
 
         [Header("Formatting")]
-        [SerializeField] private string _questTitlePrefix = "Quest: ";
-        [SerializeField] private string _stepFormat = "Step {0}/{1}: {2}";
-        [SerializeField] private string _progressFormat = "Progress: {0}/{1}";
+        [SerializeField] private string _stepFormat = "{2}";
+        [SerializeField] private string _progressFormat = "{0}/{1}";
         [SerializeField] private string _stateActiveText = "Active";
         [SerializeField] private string _stateCompletedText = "Completed";
         [SerializeField] private string _stateIdleText = "No active quest";
@@ -250,10 +249,8 @@ namespace UI
         {
             var builder = new StringBuilder(128);
 
-            AppendLine(builder, string.IsNullOrWhiteSpace(questTitleText) ? string.Empty : $"{_questTitlePrefix}{questTitleText}");
             AppendLine(builder, stepText);
             AppendLine(builder, progressText);
-            AppendLine(builder, string.IsNullOrWhiteSpace(stateText) ? string.Empty : $"State: {stateText}");
 
             return builder.ToString().TrimEnd();
         }

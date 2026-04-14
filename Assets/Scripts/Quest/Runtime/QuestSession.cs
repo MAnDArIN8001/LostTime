@@ -14,6 +14,9 @@ namespace Quest.Runtime
         private bool _isStarted;
         private bool _isCompleted;
 
+        public event Action<string> Completed;
+        public event Action<string, string> StepCompleted;
+
         public QuestSession(EventBus eventBus, QuestDefinitionData definition)
         {
             _eventBus = eventBus;
@@ -38,6 +41,16 @@ namespace Quest.Runtime
             PublishStateChanged();
         }
 
+        public void PublishCurrentState()
+        {
+            if (!_isStarted || _eventBus == null)
+            {
+                return;
+            }
+
+            PublishStateChanged();
+        }
+
         public void Dispose()
         {
             if (!_isStarted || _eventBus == null)
@@ -57,22 +70,29 @@ namespace Quest.Runtime
             }
 
             var step = _definition.Steps[_activeStepIndex];
-            if (step == null || step.EventFilter == null || !step.EventFilter.Matches(eventData))
+            var expectedSignal = step?.ExpectedSignal;
+            if (step == null || expectedSignal == null || !expectedSignal.Matches(eventData))
             {
                 return;
             }
 
-            _activeStepProgress = Math.Min(step.RequiredCount, _activeStepProgress + Math.Max(1, eventData.CountDelta));
+            var requiredCount = Math.Max(1, expectedSignal.RequiredCount);
+            _activeStepProgress = Math.Min(requiredCount, _activeStepProgress + Math.Max(1, eventData.CountDelta));
             PublishProgressChanged();
 
-            if (_activeStepProgress < step.RequiredCount)
+            if (_activeStepProgress < requiredCount)
             {
                 return;
             }
+
+            var completedStep = step;
+            var completedStepIndex = _activeStepIndex;
+            PublishStepCompleted(completedStep, completedStepIndex);
 
             if (_activeStepIndex >= _definition.Steps.Length - 1)
             {
                 _isCompleted = true;
+                Completed?.Invoke(_definition.QuestId);
                 _eventBus.Publish(new QuestCompletedEvent(_definition.QuestId, _definition.Title));
                 PublishStateChanged();
                 Dispose();
@@ -94,7 +114,7 @@ namespace Quest.Runtime
                 _activeStepIndex,
                 _definition.Steps.Length,
                 _activeStepProgress,
-                ActiveStep?.RequiredCount ?? 0,
+                ActiveStep?.ExpectedSignal?.RequiredCount ?? 0,
                 !_isCompleted && ActiveStep != null,
                 _isCompleted));
         }
@@ -108,10 +128,25 @@ namespace Quest.Runtime
                 _activeStepIndex,
                 _definition.Steps.Length,
                 _activeStepProgress,
-                ActiveStep?.RequiredCount ?? 0));
+                ActiveStep?.ExpectedSignal?.RequiredCount ?? 0));
         }
 
-        private QuestStepDefinition ActiveStep =>
+        private void PublishStepCompleted(QuestStepDto completedStep, int completedStepIndex)
+        {
+            var stepId = completedStep?.StepId ?? string.Empty;
+            var stepTitle = completedStep?.Title ?? string.Empty;
+
+            StepCompleted?.Invoke(_definition.QuestId, stepId);
+            _eventBus.Publish(new QuestStepCompletedEvent(
+                _definition.QuestId,
+                _definition.Title,
+                stepId,
+                stepTitle,
+                completedStepIndex,
+                _definition.Steps.Length));
+        }
+
+        private QuestStepDto ActiveStep =>
             _activeStepIndex >= 0 && _activeStepIndex < _definition.Steps.Length
                 ? _definition.Steps[_activeStepIndex]
                 : null;

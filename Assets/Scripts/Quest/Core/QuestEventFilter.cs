@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Quest.Core
 {
@@ -8,21 +9,6 @@ namespace Quest.Core
         public string EventId = string.Empty;
         public string SourceId = string.Empty;
         public string TargetId = string.Empty;
-
-        public bool Matches(in QuestEventData eventData)
-        {
-            if (!MatchesToken(EventId, eventData.EventId))
-            {
-                return false;
-            }
-
-            if (!MatchesToken(SourceId, eventData.SourceId))
-            {
-                return false;
-            }
-
-            return MatchesToken(TargetId, eventData.TargetId);
-        }
 
         public QuestEventFilter Clone()
         {
@@ -34,19 +20,15 @@ namespace Quest.Core
             };
         }
 
-        private static bool MatchesToken(string expected, string actual)
+        public QuestExpectedSignalDto ToExpectedSignal(int requiredCount = 1)
         {
-            if (string.IsNullOrWhiteSpace(expected))
+            return new QuestExpectedSignalDto
             {
-                return true;
-            }
-
-            if (string.IsNullOrWhiteSpace(actual))
-            {
-                return false;
-            }
-
-            return string.Equals(expected.Trim(), actual.Trim(), StringComparison.OrdinalIgnoreCase);
+                EventId = EventId,
+                SourceId = SourceId,
+                TargetId = TargetId,
+                RequiredCount = Mathf.Max(1, requiredCount),
+            };
         }
     }
 }

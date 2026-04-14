@@ -78,4 +78,30 @@ namespace Quest.Events
         public string QuestId { get; }
         public string QuestTitle { get; }
     }
+
+    public readonly struct QuestStepCompletedEvent
+    {
+        public QuestStepCompletedEvent(
+            string questId,
+            string questTitle,
+            string stepId,
+            string stepTitle,
+            int stepIndex,
+            int stepCount)
+        {
+            QuestId = questId;
+            QuestTitle = questTitle;
+            StepId = stepId;
+            StepTitle = stepTitle;
+            StepIndex = stepIndex;
+            StepCount = stepCount;
+        }
+
+        public string QuestId { get; }
+        public string QuestTitle { get; }
+        public string StepId { get; }
+        public string StepTitle { get; }
+        public int StepIndex { get; }
+        public int StepCount { get; }
+    }
 }
