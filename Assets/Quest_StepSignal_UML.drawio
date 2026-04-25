@@ -1,0 +1,55 @@
+﻿<mxfile host="app.diagrams.net" modified="2026-04-16T11:10:00.000Z" agent="codex" version="24.7.17">
+  <diagram id="quest-step-signal-class" name="Quest_StepSignal_UML">
+    <mxGraphModel dx="1450" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="10" value="&lt;b&gt;QuestSession&lt;/b&gt;&lt;hr/&gt;- _definition: QuestDefinitionData&lt;br/&gt;- _activeStepIndex: int&lt;br/&gt;- _activeStepProgress: int&lt;hr/&gt;+ Start(): void&lt;br/&gt;+ PublishCurrentState(): void&lt;br/&gt;+ Dispose(): void" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="330" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="20" value="&lt;b&gt;QuestDefinitionData&lt;/b&gt;&lt;hr/&gt;+ QuestId: string&lt;br/&gt;+ Title: string&lt;br/&gt;+ CompletedText: string&lt;br/&gt;+ Steps: QuestStepDto[]" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="500" y="90" width="330" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="&lt;b&gt;QuestStepDto&lt;/b&gt;&lt;hr/&gt;+ StepId: string&lt;br/&gt;+ Title: string&lt;br/&gt;+ ExpectedSignal: QuestExpectedSignalDto&lt;hr/&gt;+ Clone(): QuestStepDto&lt;br/&gt;+ Normalize(): void" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="940" y="90" width="330" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="40" value="&lt;b&gt;QuestExpectedSignalDto&lt;/b&gt;&lt;hr/&gt;+ EventId: string&lt;br/&gt;+ SourceId: string&lt;br/&gt;+ TargetId: string&lt;br/&gt;+ RequiredCount: int&lt;hr/&gt;+ Matches(eventData): bool" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="940" y="390" width="330" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="50" value="&lt;b&gt;QuestEventData&lt;/b&gt; &lt;&lt;struct&gt;&gt;&lt;hr/&gt;+ EventId: string&lt;br/&gt;+ SourceId: string&lt;br/&gt;+ TargetId: string&lt;br/&gt;+ CountDelta: int" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="500" y="400" width="330" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="60" value="Скоуп: только сопоставление сигнала шага квеста" style="shape=note;whiteSpace=wrap;html=1;size=14;" vertex="1" parent="1">
+          <mxGeometry x="60" y="380" width="330" height="110" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="201" value="has [1]" style="startArrow=diamondThin;startFill=1;endArrow=open;html=1;" edge="1" parent="1" source="10" target="20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="202" value="steps [1..*]" style="startArrow=diamondThin;startFill=1;endArrow=open;html=1;" edge="1" parent="1" source="20" target="30">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="203" value="expectedSignal [1]" style="startArrow=diamondThin;startFill=1;endArrow=open;html=1;" edge="1" parent="1" source="30" target="40">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="204" value="uses in OnQuestEvent" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="10" target="50">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="205" value="Matches(eventData)" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="40" target="50">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

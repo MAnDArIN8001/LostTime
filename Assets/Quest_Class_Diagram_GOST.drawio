@@ -1,0 +1,72 @@
+﻿<mxfile host="app.diagrams.net" modified="2026-04-16T10:00:00.000Z" agent="codex" version="24.7.17">
+  <diagram id="quest-class-diagram" name="Quest_Class_Diagram_GOST">
+    <mxGraphModel dx="1700" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2339" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="10" value="&lt;b&gt;EventBusQuestRunner&lt;/b&gt;&lt;hr/&gt;- _definitionSource: MonoBehaviour&lt;br/&gt;- _eventBusProvider: SceneEventBusProvider&lt;br/&gt;- _session: QuestSession&lt;br/&gt;&lt;hr/&gt;+ StartQuest(): void" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="320" height="210" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="20" value="&lt;b&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;br/&gt;IQuestDefinitionSource&lt;/b&gt;&lt;hr/&gt;+ CreateDefinitions(): QuestDefinitionData[]&lt;br/&gt;+ CreateDefinition(): QuestDefinitionData" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="460" y="60" width="340" height="170" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="&lt;b&gt;QuestDefinitionAuthoring&lt;/b&gt;&lt;hr/&gt;- _definitions: List&amp;lt;QuestDefinitionDto&amp;gt;&lt;br/&gt;&lt;hr/&gt;+ CreateDefinitions(): QuestDefinitionData[]&lt;br/&gt;+ CreateDefinition(): QuestDefinitionData" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="460" y="280" width="340" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="40" value="&lt;b&gt;QuestSession&lt;/b&gt;&lt;hr/&gt;- _eventBus: EventBus&lt;br/&gt;- _definition: QuestDefinitionData&lt;br/&gt;- _activeStepIndex: int&lt;br/&gt;- _activeStepProgress: int&lt;hr/&gt;+ Start(): void&lt;br/&gt;+ PublishCurrentState(): void&lt;br/&gt;+ Dispose(): void" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="420" width="320" height="250" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="50" value="&lt;b&gt;QuestDefinitionData&lt;/b&gt;&lt;hr/&gt;+ QuestId: string&lt;br/&gt;+ Title: string&lt;br/&gt;+ CompletedText: string&lt;br/&gt;+ Steps: QuestStepDto[]" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="460" y="520" width="340" height="170" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="60" value="&lt;b&gt;QuestStepDto&lt;/b&gt;&lt;hr/&gt;+ StepId: string&lt;br/&gt;+ Title: string&lt;br/&gt;+ ExpectedSignal: QuestExpectedSignalDto&lt;hr/&gt;+ Clone(): QuestStepDto&lt;br/&gt;+ Normalize(): void" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="880" y="440" width="320" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="70" value="&lt;b&gt;QuestExpectedSignalDto&lt;/b&gt;&lt;hr/&gt;+ EventId: string&lt;br/&gt;+ SourceId: string&lt;br/&gt;+ TargetId: string&lt;br/&gt;+ RequiredCount: int&lt;hr/&gt;+ Matches(event): bool" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="420" width="320" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="80" value="&lt;b&gt;QuestEventData&lt;/b&gt;&lt;br/&gt;&amp;lt;&amp;lt;struct&amp;gt;&amp;gt;&lt;hr/&gt;+ EventId: string&lt;br/&gt;+ SourceId: string&lt;br/&gt;+ TargetId: string&lt;br/&gt;+ CountDelta: int" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="670" width="320" height="170" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="90" value="&lt;b&gt;EventBus&lt;/b&gt;&lt;hr/&gt;+ Subscribe&amp;lt;T&amp;gt;(action): void&lt;br/&gt;+ Unsubscribe&amp;lt;T&amp;gt;(action): void&lt;br/&gt;+ Publish&amp;lt;T&amp;gt;(eventData): void" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="460" y="760" width="340" height="150" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="100" value="&lt;b&gt;SceneEventBusProvider&lt;/b&gt;&lt;hr/&gt;+ EventBus: EventBus&lt;br/&gt;+ TryGetEventBus(out bus): bool" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="760" width="320" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="201" value="реализация" style="endArrow=block;endFill=0;html=1;dashed=1;" edge="1" parent="1" source="30" target="20"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="202" value="использует" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="10" target="20"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="203" value="создает" style="endArrow=diamondThin;endFill=1;html=1;" edge="1" parent="1" source="10" target="40"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="204" value="получает bus" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="10" target="100"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="205" value="хранит" style="endArrow=diamondThin;endFill=1;html=1;" edge="1" parent="1" source="40" target="50"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="206" value="работает с" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="40" target="90"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="207" value="композиция 1..*" style="endArrow=diamondThin;endFill=1;html=1;" edge="1" parent="1" source="50" target="60"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="208" value="композиция 1..1" style="endArrow=diamondThin;endFill=1;html=1;" edge="1" parent="1" source="60" target="70"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="209" value="сравнивает с" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="70" target="80"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="210" value="публикует/подписывает" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="40" target="80"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="700" as="sourcePoint"/><mxPoint x="1280" y="760" as="targetPoint"/></mxGeometry></mxCell>
+
+        <mxCell id="211" value="предоставляет" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="100" target="90"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

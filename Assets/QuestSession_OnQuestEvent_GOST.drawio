@@ -1,0 +1,95 @@
+﻿<mxfile host="app.diagrams.net" modified="2026-04-15T12:00:00.000Z" agent="codex" version="24.7.17">
+  <diagram id="quest-session-flow" name="QuestSession_OnQuestEvent_GOST">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2339" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="10" value="Начало обработки события" style="shape=terminator;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="40" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="20" value="Сессия квеста активна и шаг корректен?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="140" width="260" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="Завершение без изменений" style="shape=terminator;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="170" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="40" value="Определить текущий шаг и ожидаемое условие" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="300" width="280" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="50" value="Событие соответствует ожидаемому условию?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="410" width="260" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="60" value="Завершение без изменений" style="shape=terminator;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="440" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="70" value="Обновить прогресс шага" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="570" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="80" value="Оповестить об изменении прогресса" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="660" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="90" value="Шаг завершен?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="760" width="260" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="100" value="Ожидание следующего события" style="shape=terminator;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="790" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="110" value="Оповестить о завершении шага" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="920" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="120" value="Это последний шаг квеста?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="1020" width="260" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="130" value="Завершить квест и оповестить подписчиков" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1180" width="280" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="140" value="Конец обработки события" style="shape=terminator;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1280" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="150" value="Перейти к следующему шагу и сбросить прогресс" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="1090" width="300" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="160" value="Оповестить об изменении состояния квеста" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="1190" width="300" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="170" value="Конец обработки события" style="shape=terminator;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="1290" width="300" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="201" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="10" target="20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="202" value="Нет" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="20" target="30"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="203" value="Да" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="20" target="40"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="204" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="40" target="50"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="205" value="Нет" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="50" target="60"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="206" value="Да" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="50" target="70"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="207" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="70" target="80"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="208" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="80" target="90"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="209" value="Нет" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="90" target="100"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="210" value="Да" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="90" target="110"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="211" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="110" target="120"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="212" value="Да" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="120" target="130"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="213" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="130" target="140"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="214" value="Нет" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="120" target="150"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="215" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="150" target="160"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="216" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="160" target="170"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

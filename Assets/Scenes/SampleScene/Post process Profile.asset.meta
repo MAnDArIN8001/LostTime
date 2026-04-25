@@ -1,7 +1,8 @@
 fileFormatVersion: 2
-guid: d1c3109bdb54ad54c8a2b2838528e640
-DefaultImporter:
+guid: 41fba6d887ed28c43b9745a2eaa2101b
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 11400000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -10,5 +11,5 @@ AssetOrigin:
   productId: 262473
   packageName: Low-Poly Medieval Market
   packageVersion: 1.1
-  assetPath: Assets/Scenes/SampleScene.unity
+  assetPath: Assets/Scenes/SampleScene/Post process Profile.asset
   uploadId: 617661

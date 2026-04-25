@@ -1,0 +1,51 @@
+﻿<mxfile host="app.diagrams.net" modified="2026-04-16T12:00:00.000Z" agent="codex" version="24.7.17">
+  <diagram id="interaction-core-5" name="Interaction_5_Entities_UML">
+    <mxGraphModel dx="1500" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="10" value="&lt;b&gt;CharacterInteractionDriver&lt;/b&gt;&lt;hr/&gt;- _interactionController: InteractionController&lt;br/&gt;- _intentResolver: PointerDrivenInteractionIntentResolver&lt;br/&gt;- _controlSessionPolicy: ICharacterControlSessionPolicy&lt;br/&gt;- _controlSession: ControlSession&lt;hr/&gt;+ Tick(frameInput): bool&lt;br/&gt;+ TryHandleIntent(intent, interactor): bool" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="70" y="140" width="420" height="270" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="20" value="&lt;b&gt;PointerDrivenInteractionIntentResolver&lt;/b&gt;&lt;hr/&gt;- _pointerControlSignalSource: IPointerControlSignalSource&lt;hr/&gt;+ Resolve(interactionRequested, focusContext): InteractionIntentResolution" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="610" y="80" width="430" height="210" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="&lt;b&gt;ControlSession&lt;/b&gt;&lt;hr/&gt;- _target: IControlable&lt;br/&gt;- _interactor: GameObject&lt;br/&gt;- _mode: ControlMode&lt;hr/&gt;+ TryBegin(target, mode, interactor, pointerContext): bool&lt;br/&gt;+ TryMaintain(pointerContext): bool&lt;br/&gt;+ TryEnd(pointerContext): bool&lt;br/&gt;+ Cancel(): bool" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="610" y="350" width="430" height="270" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="40" value="&lt;b&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;br/&gt;ICharacterControlSessionPolicy&lt;/b&gt;&lt;hr/&gt;+ Evaluate(context): CharacterControlSessionPolicyDecision" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="170" width="420" height="170" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="50" value="&lt;b&gt;DefaultCharacterControlSessionPolicy&lt;/b&gt;&lt;hr/&gt;+ Evaluate(context): CharacterControlSessionPolicyDecision" style="shape=rectangle;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="410" width="420" height="150" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="60" value="Скоуп: управление интентом взаимодействия и control session" style="shape=note;whiteSpace=wrap;html=1;size=14;" vertex="1" parent="1">
+          <mxGeometry x="70" y="460" width="420" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="201" value="has [1]" style="startArrow=diamondThin;startFill=1;endArrow=open;html=1;" edge="1" parent="1" source="10" target="20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="202" value="has [1]" style="startArrow=diamondThin;startFill=1;endArrow=open;html=1;" edge="1" parent="1" source="10" target="30">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="203" value="uses [1]" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="10" target="40">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="204" value="realization" style="endArrow=block;endFill=0;dashed=1;html=1;" edge="1" parent="1" source="50" target="40">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
