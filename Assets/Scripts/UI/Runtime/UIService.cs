@@ -5,14 +5,17 @@ namespace UI.Runtime
     public sealed class UIService : IUIService
     {
         private readonly IUIPanelFactory _panelFactory;
+        private readonly IUIInputGate _uiInputGate;
         private readonly Dictionary<PanelId, IUIPanel> _openPanelById = new();
         private readonly Dictionary<PanelId, IUIPanel> _keepAliveCacheById = new();
         private readonly List<PanelId> _panelStack = new();
         private bool _isDisposed;
+        private bool _isGameplayInputBlocked;
 
-        public UIService(IUIPanelFactory panelFactory)
+        public UIService(IUIPanelFactory panelFactory, IUIInputGate uiInputGate = null)
         {
             _panelFactory = panelFactory;
+            _uiInputGate = uiInputGate;
         }
 
         public TPanel Open<TPanel>() where TPanel : class, IUIPanel
@@ -54,6 +57,7 @@ namespace UI.Runtime
             panel.Show();
             _openPanelById[panelId] = panel;
             EnsurePanelAtTop(panelId);
+            SyncGameplayInputGate();
             return panel as TPanel;
         }
 
@@ -81,10 +85,12 @@ namespace UI.Runtime
             if (panel.Config.CachePolicy == UICachePolicy.KeepAlive)
             {
                 _keepAliveCacheById[panelId] = panel;
+                SyncGameplayInputGate();
                 return true;
             }
 
             _panelFactory.Release(panelId);
+            SyncGameplayInputGate();
             return true;
         }
 
@@ -111,6 +117,19 @@ namespace UI.Runtime
                 var topPanelId = _panelStack[_panelStack.Count - 1];
                 Close(topPanelId, reason);
             }
+
+            SyncGameplayInputGate();
+        }
+
+        public bool HandleCloseAllShortcut()
+        {
+            if (_isDisposed || _panelStack.Count == 0)
+            {
+                return false;
+            }
+
+            CloseAll(UIPanelCloseReason.CloseAll);
+            return true;
         }
 
         public bool IsOpen<TPanel>() where TPanel : class, IUIPanel
@@ -158,6 +177,7 @@ namespace UI.Runtime
             _keepAliveCacheById.Clear();
             _openPanelById.Clear();
             _panelStack.Clear();
+            RestoreGameplayInputIfNeeded();
             _isDisposed = true;
         }
 
@@ -177,6 +197,39 @@ namespace UI.Runtime
                     return;
                 }
             }
+        }
+
+        private void SyncGameplayInputGate()
+        {
+            if (_uiInputGate == null)
+            {
+                return;
+            }
+
+            if (_openPanelById.Count > 0)
+            {
+                if (_isGameplayInputBlocked)
+                {
+                    return;
+                }
+
+                _uiInputGate.BlockGameplayInput();
+                _isGameplayInputBlocked = true;
+                return;
+            }
+
+            RestoreGameplayInputIfNeeded();
+        }
+
+        private void RestoreGameplayInputIfNeeded()
+        {
+            if (_uiInputGate == null || !_isGameplayInputBlocked)
+            {
+                return;
+            }
+
+            _uiInputGate.RestoreGameplayInput();
+            _isGameplayInputBlocked = false;
         }
     }
 }
