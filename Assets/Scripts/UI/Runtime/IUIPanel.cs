@@ -2,12 +2,12 @@ namespace UI.Runtime
 {
     public interface IUIPanel
     {
-        PanelId Id { get; }
-        UIPanelConfig Config { get; }
-        bool IsVisible { get; }
+        public PanelId Id { get; }
+        public UIPanelConfig Config { get; }
+        public bool IsVisible { get; }
 
-        void Show();
-        void Hide();
-        void Close(UIPanelCloseReason reason);
+        public void Show();
+        public void Hide();
+        public void Close(UIPanelCloseReason reason);
     }
 }

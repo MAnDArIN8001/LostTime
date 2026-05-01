@@ -1,9 +1,9 @@
 namespace UI.Runtime
 {
-    public readonly struct UIPanelConfig
+    public struct UIPanelConfig
     {
-        public bool IsModal { get; }
-        public UICachePolicy CachePolicy { get; }
+        public bool IsModal { get; private set; }
+        public UICachePolicy CachePolicy { get; private set; }
 
         public UIPanelConfig(bool isModal, UICachePolicy cachePolicy)
         {
