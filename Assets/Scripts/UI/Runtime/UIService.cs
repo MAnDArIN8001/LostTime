@@ -206,7 +206,7 @@ namespace UI.Runtime
                 return;
             }
 
-            if (_openPanelById.Count > 0)
+            if (ShouldBlockGameplayInput())
             {
                 if (_isGameplayInputBlocked)
                 {
@@ -219,6 +219,19 @@ namespace UI.Runtime
             }
 
             RestoreGameplayInputIfNeeded();
+        }
+
+        private bool ShouldBlockGameplayInput()
+        {
+            foreach (var pair in _openPanelById)
+            {
+                if (pair.Value != null && pair.Value.Config.BlocksGameplayInput)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void RestoreGameplayInputIfNeeded()

@@ -6,18 +6,22 @@ namespace UI.Runtime
     {
         [Header("Panel Config")]
         [SerializeField] private bool _isModal;
-        [SerializeField] private UICachePolicy _cachePolicy = UICachePolicy.DestroyOnClose;
         [SerializeField] private bool _hideOnEnable = true;
+        [SerializeField] private bool _blocksGameplayInput;
+
+        [SerializeField] private UICachePolicy _cachePolicy = UICachePolicy.DestroyOnClose;
+        
         [SerializeField] private GameObject _panelRoot;
 
+        public bool IsVisible { get; private set; }
+        
         public PanelId Id { get; private set; }
         public UIPanelConfig Config { get; private set; }
-        public bool IsVisible { get; private set; }
 
         protected virtual void Awake()
         {
             Id = PanelId.From(GetType());
-            Config = new UIPanelConfig(_isModal, _cachePolicy);
+            Config = new UIPanelConfig(_isModal, _cachePolicy, _blocksGameplayInput);
             EnsurePanelRoot();
         }
 
