@@ -5,6 +5,7 @@
 - Added isolated UI runtime contracts and value types for DI-first service/panel flow.
 - Restored worklog template path required by project agent rules.
 - Applied review follow-up: explicit access modifiers in `IUIPanel` members and private setters in `UIPanelConfig`.
+- Applied follow-up clarification: `PanelId.Value` also switched to `get; private set;` for consistent read/write policy.
 
 ## files changed
 - `Assets/Scripts/UI/Runtime/UICachePolicy.cs` - cache policy enum.

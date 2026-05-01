@@ -2,9 +2,9 @@ using System;
 
 namespace UI.Runtime
 {
-    public readonly struct PanelId : IEquatable<PanelId>
+    public struct PanelId : IEquatable<PanelId>
     {
-        public string Value { get; }
+        public string Value { get; private set; }
 
         public PanelId(string value)
         {
