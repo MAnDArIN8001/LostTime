@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 namespace UI.Runtime
 {
@@ -8,16 +9,22 @@ namespace UI.Runtime
     {
         private readonly IUIPanelRegistry _registry;
         private readonly IResourceLoader _resourceLoader;
+        private readonly DiContainer _container;
 
         private readonly Transform _panelRoot;
         
         private readonly Dictionary<PanelId, IUIPanel> _createdPanelById = new();
         private readonly Dictionary<PanelId, GameObject> _prefabById = new();
 
-        public UIPanelFactory(IUIPanelRegistry registry, IResourceLoader resourceLoader, Transform panelRoot = null)
+        public UIPanelFactory(
+            IUIPanelRegistry registry,
+            IResourceLoader resourceLoader,
+            DiContainer container,
+            Transform panelRoot = null)
         {
             _registry = registry;
             _resourceLoader = resourceLoader;
+            _container = container;
             _panelRoot = panelRoot;
         }
 
@@ -47,7 +54,7 @@ namespace UI.Runtime
                 return null;
             }
 
-            var instance = UnityEngine.Object.Instantiate(prefab, _panelRoot);
+            var instance = _container.InstantiatePrefab(prefab, _panelRoot);
             if (!instance.TryGetComponent(registration.PanelType, out var panelComponent))
             {
                 Debug.LogError(
