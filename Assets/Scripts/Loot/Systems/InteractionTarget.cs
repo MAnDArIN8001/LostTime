@@ -10,12 +10,14 @@ namespace Loot.Systems
         [SerializeField] private string _interactionPrompt = "Interact";
         [SerializeField] private bool _singleUse = true;
         [SerializeField] private bool _consumeOnInteract = true;
+        [SerializeField] private Transform _graphicsTarget;
         [SerializeField] private UnityEvent _onInteracted;
 
         private bool _isConsumed;
 
         public string InteractionPrompt => _interactionPrompt;
         public bool CanInteract => !_singleUse || !_isConsumed;
+        public Transform GraphicsTarget => _graphicsTarget != null ? _graphicsTarget : transform;
 
         public event Action<IInteractable, GameObject> Interacted;
 

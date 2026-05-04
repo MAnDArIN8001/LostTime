@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Gameplay.Interaction.Core;
+using Dialogue.World;
 using UnityEngine;
 using Utils.Filters;
 using Utils.Physics.Raycaster;
@@ -22,6 +24,9 @@ namespace Loot.Systems
         private IControlable _currentControlable;
         private InteractionFocusContext _currentFocusContext;
         private int _lastProcessedHitFrame = -1;
+        private readonly List<GameObject> _outlinedObjects = new();
+        private readonly List<int> _outlinedObjectsOriginalLayers = new();
+        private int _outlineLayer = -1;
 
         public string CurrentInteractHint
         {
@@ -49,6 +54,7 @@ namespace Loot.Systems
         private void OnEnable()
         {
             InteractionDebugLog.Configure(_enableDebugLogs, _verboseDiscoveryLogs);
+            _outlineLayer = LayerMask.NameToLayer("Outline");
 
             if (_directionalRaycaster == null)
             {
@@ -181,6 +187,7 @@ namespace Loot.Systems
             _currentTakable = focus.Takable;
             _currentControlable = focus.Controlable;
             _currentFocusContext = focus.Context;
+            UpdateOutlineForFocusTarget(ResolveOutlineRootGameObject());
             _currentMarkable?.ShowMark();
 
             InteractionDebugLog.Log(
@@ -201,6 +208,7 @@ namespace Loot.Systems
             _currentTakable = null;
             _currentControlable = null;
             _currentFocusContext = default;
+            ClearOutline();
             if (hadFocus)
             {
                 InteractionDebugLog.Log(this, "Focus cleared.");
@@ -234,6 +242,118 @@ namespace Loot.Systems
             return pointerContext.HitCollider != null
                 ? pointerContext.HitCollider.name
                 : "null";
+        }
+
+        private GameObject ResolveFocusTargetGameObject()
+        {
+            var pointerContext = _currentFocusContext.PointerContext;
+            if (pointerContext.Target != null)
+            {
+                return pointerContext.Target;
+            }
+
+            return pointerContext.HitCollider != null
+                ? pointerContext.HitCollider.gameObject
+                : null;
+        }
+
+        private GameObject ResolveOutlineRootGameObject()
+        {
+            if (_currentInteractable is InteractionTarget interactionTarget && interactionTarget.GraphicsTarget != null)
+            {
+                return interactionTarget.GraphicsTarget.gameObject;
+            }
+
+            if (_currentInteractable is DialogueInteractableZone dialogueZone && dialogueZone.GraphicsTarget != null)
+            {
+                return dialogueZone.GraphicsTarget.gameObject;
+            }
+
+            return ResolveFocusTargetGameObject();
+        }
+
+        private void UpdateOutlineForFocusTarget(GameObject target)
+        {
+            if (_outlineLayer < 0)
+            {
+                return;
+            }
+
+            if (IsAlreadyOutlinedTarget(target))
+            {
+                return;
+            }
+
+            ClearOutline();
+
+            if (target == null)
+            {
+                return;
+            }
+
+            CacheAndApplyOutlineRecursively(target.transform);
+        }
+
+        private void ClearOutline()
+        {
+            if (_outlinedObjects.Count == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < _outlinedObjects.Count; i++)
+            {
+                var outlinedObject = _outlinedObjects[i];
+                if (outlinedObject == null)
+                {
+                    continue;
+                }
+
+                outlinedObject.layer = _outlinedObjectsOriginalLayers[i];
+            }
+
+            _outlinedObjects.Clear();
+            _outlinedObjectsOriginalLayers.Clear();
+        }
+
+        private bool IsAlreadyOutlinedTarget(GameObject target)
+        {
+            if (target == null || _outlinedObjects.Count == 0)
+            {
+                return false;
+            }
+
+            return ReferenceEquals(_outlinedObjects[0], target);
+        }
+
+        private void CacheAndApplyOutlineRecursively(Transform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            var stack = new Stack<Transform>();
+            stack.Push(root);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current == null)
+                {
+                    continue;
+                }
+
+                var currentObject = current.gameObject;
+                _outlinedObjects.Add(currentObject);
+                _outlinedObjectsOriginalLayers.Add(currentObject.layer);
+                currentObject.layer = _outlineLayer;
+
+                for (var i = 0; i < current.childCount; i++)
+                {
+                    stack.Push(current.GetChild(i));
+                }
+            }
         }
     }
 }

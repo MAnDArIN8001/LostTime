@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+- Don't write xml commets for public interfaces
+- Read `Assets/.codex/context/context.md` first and treat it as the technical source of truth
+- If another plan or prompt conflicts with `Assets/.codex/context/context.md`, follow the context file and call out the conflicting doc as legacy in your handoff
+- On end of any feachures write a step by step requrenments list, whet it requires to do in inspector, if any
+- Make the plan extremely concie. Sacrifiece grammar for the sake of concision.
+- At the end of each plan, give me a list of unresolved questions, if any.
+- Every agent task that changes files must also create or update a worklog under `Assets/.cursor/docs/worklogs/`
+- Use `Assets/.cursor/docs/WORKLOG_TEMPLATE.md` as the default worklog structure
+- Every worklog must include: summary, files changed, scene/inspector, validation, decision log, follow-ups, commit
+- After each implemented step with file changes, agent must request reviewer approval before any commit
+- Commit is allowed only after explicit reviewer confirmation that changes are approved (e.g. "ok", "approved")
+- If review is not approved yet, keep changes uncommitted and continue only with review feedback fixes
+- Allowed commit prefixes are only: `fix:`, `feat:`, `update:`, `refactor:`
+- Commit subjects should be short and reflect the actual change
+- Do not split one scoped task into multiple commits unless the user explicitly asks for it

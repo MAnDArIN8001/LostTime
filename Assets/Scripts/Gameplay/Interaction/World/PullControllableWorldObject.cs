@@ -11,13 +11,11 @@ namespace Gameplay.Interaction.World
     {
         [SerializeField] private string _controlPrompt = "Pull";
         [SerializeField] private bool _requirePointerTarget = true;
-        [SerializeField] private Space _movementSpace = Space.World;
-        [SerializeField] private Vector3 _pullAxis = Vector3.forward;
         [SerializeField, Min(0f)] private float _pullSpeed = 2f;
         [SerializeField, Min(0f)] private float _actionStepDistance = 0.75f;
         [SerializeField, Min(0f)] private float _actionMoveDuration = 0.2f;
         [SerializeField] private Ease _actionMoveEase = Ease.OutQuad;
-        [SerializeField, Min(0f)] private float _maxPullDistance = 2f;
+        [SerializeField] private MovementAxisIgnoreMask _ignoredMovementAxes;
         [SerializeField] private LayerMask _movementBlockerLayers = ~0;
         [SerializeField] private bool _blockByTriggers;
         [SerializeField] private bool _snapBackOnControlEnd;
@@ -59,7 +57,7 @@ namespace Gameplay.Interaction.World
                 return false;
             }
 
-            return ResolveAxisWorld().sqrMagnitude > Epsilon && _actionStepDistance > Epsilon;
+            return ResolvePullDirection(interactor).sqrMagnitude > Epsilon && _actionStepDistance > Epsilon;
         }
 
         public void Press(GameObject interactor, in PointerTargetContext pointerContext)
@@ -75,11 +73,9 @@ namespace Gameplay.Interaction.World
                 _originPosition = transform.position;
             }
 
-            var axis = ResolveAxisWorld();
-            var pullDirection = ResolvePullDirection(axis, interactor, pointerContext);
+            var pullDirection = ResolvePullDirection(interactor);
             var nextPosition = transform.position + pullDirection * _actionStepDistance;
-            var targetPosition = ClampToRange(nextPosition, axis);
-            var moveDelta = targetPosition - transform.position;
+            var moveDelta = nextPosition - transform.position;
             if (moveDelta.sqrMagnitude > Epsilon && IsMovementBlocked(moveDelta, out var blockerName))
             {
                 InteractionDebugLog.Log(this, $"Pull press blocked on '{name}' by '{blockerName}'.");
@@ -91,14 +87,14 @@ namespace Gameplay.Interaction.World
 
             if (_actionMoveDuration <= Epsilon)
             {
-                transform.position = targetPosition;
+                transform.position = nextPosition;
                 _onControlUpdated?.Invoke();
                 _onControlEnded?.Invoke();
             }
             else
             {
                 _moveTween = transform
-                    .DOMove(targetPosition, _actionMoveDuration)
+                    .DOMove(nextPosition, _actionMoveDuration)
                     .SetEase(_actionMoveEase)
                     .OnUpdate(() => _onControlUpdated?.Invoke())
                     .OnComplete(() =>
@@ -109,7 +105,7 @@ namespace Gameplay.Interaction.World
             }
 
             PressExecuted?.Invoke(interactor);
-            InteractionDebugLog.Log(this, $"Pull press executed on '{name}'. stepDistance={_actionStepDistance:0.###}, targetPosition={targetPosition}, duration={_actionMoveDuration:0.###}.");
+            InteractionDebugLog.Log(this, $"Pull press executed on '{name}'. stepDistance={_actionStepDistance:0.###}, targetPosition={nextPosition}, duration={_actionMoveDuration:0.###}.");
         }
 
         public bool CanControl(ControlMode mode, GameObject interactor, in PointerTargetContext pointerContext)
@@ -124,7 +120,7 @@ namespace Gameplay.Interaction.World
                 return false;
             }
 
-            return ResolveAxisWorld().sqrMagnitude > Epsilon;
+            return ResolvePullDirection(interactor).sqrMagnitude > Epsilon;
         }
 
         public void BeginControl(ControlMode mode, GameObject interactor, in PointerTargetContext pointerContext)
@@ -144,7 +140,7 @@ namespace Gameplay.Interaction.World
             _moveTween = null;
             _isControlled = true;
             _activeMode = mode;
-            InteractionDebugLog.Log(this, $"Pull control began on '{name}' by '{interactor.name}'. origin={_originPosition}, axis={ResolveAxisWorld()}.");
+            InteractionDebugLog.Log(this, $"Pull control began on '{name}' by '{interactor.name}'. origin={_originPosition}.");
             _onControlStarted?.Invoke();
             ControlStarted?.Invoke(interactor);
         }
@@ -156,28 +152,21 @@ namespace Gameplay.Interaction.World
                 return;
             }
 
-            var axis = ResolveAxisWorld();
-            if (axis.sqrMagnitude <= Epsilon)
-            {
-                return;
-            }
-
-            var pullDirection = ResolvePullDirection(axis, interactor, pointerContext);
+            var pullDirection = ResolvePullDirection(interactor);
             if (pullDirection.sqrMagnitude <= Epsilon)
             {
                 return;
             }
 
             var nextPosition = transform.position + pullDirection * (_pullSpeed * Time.deltaTime);
-            var targetPosition = ClampToRange(nextPosition, axis);
-            var moveDelta = targetPosition - transform.position;
+            var moveDelta = nextPosition - transform.position;
             if (moveDelta.sqrMagnitude > Epsilon && IsMovementBlocked(moveDelta, out var blockerName))
             {
                 InteractionDebugLog.LogVerbose(this, $"Pull control blocked on '{name}' by '{blockerName}'.");
                 return;
             }
 
-            transform.position = targetPosition;
+            transform.position = nextPosition;
             InteractionDebugLog.LogVerbose(this, $"Pull control updated '{name}'. direction={pullDirection}, position={transform.position}.");
             _onControlUpdated?.Invoke();
         }
@@ -209,59 +198,20 @@ namespace Gameplay.Interaction.World
             _moveTween = null;
         }
 
-        private Vector3 ResolveAxisWorld()
+        private Vector3 ResolvePullDirection(GameObject interactor)
         {
-            if (_pullAxis.sqrMagnitude <= Epsilon)
+            if (interactor == null)
             {
                 return Vector3.zero;
             }
 
-            var normalizedAxis = _pullAxis.normalized;
-            return _movementSpace == Space.Self
-                ? transform.TransformDirection(normalizedAxis).normalized
-                : normalizedAxis;
-        }
-
-        private Vector3 ResolvePullDirection(Vector3 axis, GameObject interactor, in PointerTargetContext pointerContext)
-        {
-            var pointerInfluence = Vector3.Dot(pointerContext.HitNormal, axis);
-            if (Mathf.Abs(pointerInfluence) > Epsilon)
+            var toInteractor = interactor.transform.position - transform.position;
+            if (toInteractor.sqrMagnitude <= Epsilon)
             {
-                return axis * Mathf.Sign(pointerInfluence);
+                return Vector3.zero;
             }
 
-            if (interactor != null)
-            {
-                var toInteractor = interactor.transform.position - transform.position;
-                var interactorInfluence = Vector3.Dot(toInteractor, axis);
-                if (Mathf.Abs(interactorInfluence) > Epsilon)
-                {
-                    return axis * Mathf.Sign(interactorInfluence);
-                }
-            }
-
-            var toHitPoint = pointerContext.HitPoint - transform.position;
-            var hitPointInfluence = Vector3.Dot(toHitPoint, axis);
-            if (Mathf.Abs(hitPointInfluence) > Epsilon)
-            {
-                return axis * Mathf.Sign(hitPointInfluence);
-            }
-
-            return -axis;
-        }
-
-        private Vector3 ClampToRange(Vector3 targetPosition, Vector3 axis)
-        {
-            if (_maxPullDistance <= Epsilon)
-            {
-                return targetPosition;
-            }
-
-            var offsetFromOrigin = targetPosition - _originPosition;
-            var offsetOnAxis = Vector3.Dot(offsetFromOrigin, axis);
-            var clampedOffset = Mathf.Clamp(offsetOnAxis, -_maxPullDistance, _maxPullDistance);
-
-            return _originPosition + axis * clampedOffset;
+            return _ignoredMovementAxes.Apply(toInteractor, Epsilon);
         }
 
         private void CacheMovementColliders()
@@ -510,13 +460,10 @@ namespace Gameplay.Interaction.World
         private void OnValidate()
         {
             _controlPrompt = InteractionAuthoringGuards.NormalizePrompt(_controlPrompt, "Pull");
-            _movementSpace = InteractionAuthoringGuards.NormalizeSpace(_movementSpace);
-            _pullAxis = InteractionAuthoringGuards.NormalizeAxis(_pullAxis, Vector3.forward);
 
             _pullSpeed = InteractionAuthoringGuards.ClampNonNegative(_pullSpeed);
             _actionStepDistance = InteractionAuthoringGuards.ClampNonNegative(_actionStepDistance);
             _actionMoveDuration = InteractionAuthoringGuards.ClampNonNegative(_actionMoveDuration);
-            _maxPullDistance = InteractionAuthoringGuards.ClampNonNegative(_maxPullDistance);
 
             if (_requirePointerTarget && !InteractionAuthoringGuards.HasPointerColliderBinding(transform))
             {

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,10 +9,10 @@ namespace UI.Runtime
     public sealed class UIRuntimeConfig : ScriptableObject
     {
         [field: SerializeField] public UIResourceBackend ResourceBackend { get; private set; } = UIResourceBackend.Resources;
-        
-        [Space, SerializeField] private List<UIPanelConfigEntry> _panelEntries = new();
 
-        public IReadOnlyList<UIPanelConfigEntry> PanelEntries => _panelEntries;
+        [Space, SerializeField] private List<UIPanelDefinition> _panelDefinitions = new();
+
+        public IReadOnlyList<UIPanelDefinition> PanelDefinitions => _panelDefinitions;
     }
 
     public enum UIResourceBackend
@@ -22,13 +21,4 @@ namespace UI.Runtime
         Addressables = 1
     }
 
-    [Serializable]
-    public struct UIPanelConfigEntry
-    {
-        [SerializeField] private string _panelTypeName;
-        [SerializeField] private string _assetPath;
-
-        public string PanelTypeName => _panelTypeName;
-        public string AssetPath => _assetPath;
-    }
 }

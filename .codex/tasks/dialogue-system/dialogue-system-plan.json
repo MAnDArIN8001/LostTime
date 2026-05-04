@@ -1,0 +1,381 @@
+{
+  "task_metadata": {
+    "plan_id": "DIALOGUE-SVC-2026-05-03-001",
+    "task_name": "Modular Dialogue System with Interactable Zone, Runtime Session, MVP UI, Camera Pivot, Communication State, and Global Choice History",
+    "version": "1.0.0",
+    "created_at": "2026-05-03T00:00:00+03:00",
+    "priority": "HIGH"
+  },
+  "execution_policy": {
+    "review_gate_required": true,
+    "review_gate_rule": "After each implemented step with repository changes, request reviewer approval and do not commit until explicit approval is received.",
+    "commit_rule": "Single scoped commit is allowed only after reviewer approval."
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "001",
+        "description": "Reasoning pass: lock dialogue module boundaries, confirm integration points with current interaction flow, FSM, camera, persistence, and UI MVP before code changes.",
+        "model_config": {
+          "model_name": "gpt-5.4",
+          "temperature": 0.1,
+          "system_instruction": "Perform architecture reasoning only. Define stable dialogue contracts, lifecycle, and extension points for a Unity modular dialogue system."
+        },
+        "nuances": [
+          "One active dialogue session only.",
+          "Break path must not count as completed.",
+          "Respect current IInteractable-based interaction pipeline."
+        ],
+        "relations": {
+          "dependencies": [],
+          "dependent_tasks": [
+            "002"
+          ]
+        },
+        "output_format": "MARKDOWN",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": null
+        }
+      },
+      {
+        "id": "002",
+        "description": "Create dialogue module folder structure and core authoring/domain contracts: dialogue definition SO, node/option definitions, node type enum, condition contracts, and stable inspector-visible ids.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Implement Unity C# authoring and domain contracts for a data-oriented dialogue system."
+        },
+        "nuances": [
+          "No XML comments for public interfaces.",
+          "Ids must be stable and inspector-visible.",
+          "Support Continue, Choice, and End node types."
+        ],
+        "relations": {
+          "dependencies": [
+            "001"
+          ],
+          "dependent_tasks": [
+            "003"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "001"
+        }
+      },
+      {
+        "id": "003",
+        "description": "Implement authoring/runtime validation path for dialogue assets: duplicate id checks, missing next node detection, invalid start node detection, empty choice node rejection, and condition target validation.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Add deterministic validation for dialogue data authoring to prevent broken runtime branches."
+        },
+        "nuances": [
+          "Validation errors should be actionable in inspector.",
+          "Warn on orphan nodes without blocking valid assets."
+        ],
+        "relations": {
+          "dependencies": [
+            "002"
+          ],
+          "dependent_tasks": [
+            "004"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "002"
+        }
+      },
+      {
+        "id": "004",
+        "description": "Implement dialogue runtime session: start node resolution, current node exposure, continue flow, option selection flow, local history recording, and lifecycle statuses Idle/Running/Completed/Broken.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Build a deterministic dialogue session runtime with clean step iteration and lifecycle control."
+        },
+        "nuances": [
+          "Session owns progression, not UI.",
+          "Break and complete paths must be explicit and distinct.",
+          "Node resolution must support future condition growth."
+        ],
+        "relations": {
+          "dependencies": [
+            "002",
+            "003"
+          ],
+          "dependent_tasks": [
+            "005",
+            "006"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 3,
+          "fallback_step": "003"
+        }
+      },
+      {
+        "id": "005",
+        "description": "Implement condition evaluation layer with v1 conditions: AlwaysTrue, PreviousChoiceIs, and QuestCompleted. Add evaluator inputs for session local history, global history, and quest state query.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Create extensible dialogue branch evaluation that remains decoupled from UI and concrete quest storage."
+        },
+        "nuances": [
+          "Both nodes and options can be gated.",
+          "Hide unavailable branches by default in v1."
+        ],
+        "relations": {
+          "dependencies": [
+            "004"
+          ],
+          "dependent_tasks": [
+            "006",
+            "010"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "004"
+        }
+      },
+      {
+        "id": "006",
+        "description": "Implement dialogue event contract and dispatch flow: OnDialogueStarted, OnDialogueStepShown, OnDialogueOptionSelected, OnDialogueStepCompleted, OnDialogueCompleted, and OnDialogueBreak.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Add strongly defined runtime events for dialogue lifecycle, analytics, quest hooks, and presentation sync."
+        },
+        "nuances": [
+          "StepCompleted semantics must differ correctly for Continue, Choice, and End nodes.",
+          "Break fires only on cancel or forced close."
+        ],
+        "relations": {
+          "dependencies": [
+            "004",
+            "005"
+          ],
+          "dependent_tasks": [
+            "007",
+            "008",
+            "009"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "004"
+        }
+      },
+      {
+        "id": "007",
+        "description": "Create DialogueInteractableZone as IInteractable world entry point with prompt, graphics target, camera pivot, dialogue asset reference, and optional single-use behavior aligned with current interaction patterns.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Implement a thin world-facing dialogue interactable that plugs into the existing interaction controller without owning runtime session logic."
+        },
+        "nuances": [
+          "Prefer composition over inheriting InteractionTarget.",
+          "Graphics target fallback should mirror current project behavior."
+        ],
+        "relations": {
+          "dependencies": [
+            "006"
+          ],
+          "dependent_tasks": [
+            "008"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "006"
+        }
+      },
+      {
+        "id": "008",
+        "description": "Implement DialogueOrchestrator to enforce single active session, start from interactable, bind session to presenter, handle cleanup, and coordinate camera, communication state, player freeze, and persistence hooks.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Implement central dialogue orchestration with deterministic setup and teardown across world, runtime, and UI boundaries."
+        },
+        "nuances": [
+          "UI must not directly toggle character state or camera.",
+          "Cleanup must be idempotent on both Completed and Broken paths.",
+          "Only one active dialogue allowed globally."
+        ],
+        "relations": {
+          "dependencies": [
+            "006",
+            "007"
+          ],
+          "dependent_tasks": [
+            "009",
+            "010",
+            "011"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 3,
+          "fallback_step": "007"
+        }
+      },
+      {
+        "id": "009",
+        "description": "Build dialogue UI MVP: view, presenter, and view model for modal window, speaker text, body text, continue action, option list, cancel, and default gamepad focus behavior.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.15,
+          "system_instruction": "Implement a clean MVP dialogue UI that remains presentation-only and supports both mouse and gamepad interaction."
+        },
+        "nuances": [
+          "Continue and Choice modes should render through one presenter.",
+          "Presenter maps runtime node to view model.",
+          "Gamepad navigation must have deterministic initial focus."
+        ],
+        "relations": {
+          "dependencies": [
+            "006",
+            "008"
+          ],
+          "dependent_tasks": [
+            "011",
+            "012"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 3,
+          "fallback_step": "008"
+        }
+      },
+      {
+        "id": "010",
+        "description": "Implement global dialogue history repository and quest query integration: persist structured choice entries by dialogue/node/choice, expose query API for conditions, and keep break path non-completing.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Add persistence-facing dialogue history and external quest condition integration with stable ids and low coupling."
+        },
+        "nuances": [
+          "Persist choice on valid option selection, not only on full completion.",
+          "History shape must preserve node context for future repeated runs."
+        ],
+        "relations": {
+          "dependencies": [
+            "005",
+            "008"
+          ],
+          "dependent_tasks": [
+            "011",
+            "012"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "005"
+        }
+      },
+      {
+        "id": "011",
+        "description": "Integrate character communication sub-state, animation key reservation Talking, input blocking, and camera pivot restore path. Ensure gameplay movement/aim/cast/interact are blocked only for active dialogue lifetime.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Wire dialogue runtime into character state, animation, and camera behavior with explicit begin/end lifecycle boundaries."
+        },
+        "nuances": [
+          "Communication state should be runtime-driven by orchestrator, not UI-driven.",
+          "Animation clip can arrive later, but config key Talking should be wired now.",
+          "Restore path must survive break, complete, and exceptional teardown."
+        ],
+        "relations": {
+          "dependencies": [
+            "008",
+            "009",
+            "010"
+          ],
+          "dependent_tasks": [
+            "012"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 3,
+          "fallback_step": "008"
+        }
+      },
+      {
+        "id": "012",
+        "description": "Add or adjust tests and validation scenarios for node progression, continue steps, branching by previous choice, quest-completed gating, break vs complete lifecycle, history persistence, and cleanup restore invariants.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.1,
+          "system_instruction": "Validate critical dialogue invariants and regression-prone integration behavior across runtime, UI, and orchestration layers."
+        },
+        "nuances": [
+          "Cover both mouse and gamepad interaction paths when feasible.",
+          "Prioritize lifecycle cleanup and branch correctness."
+        ],
+        "relations": {
+          "dependencies": [
+            "009",
+            "010",
+            "011"
+          ],
+          "dependent_tasks": [
+            "013"
+          ]
+        },
+        "output_format": "CODE",
+        "retry_policy": {
+          "max_attempts": 2,
+          "fallback_step": "011"
+        }
+      },
+      {
+        "id": "013",
+        "description": "Create or update worklog under Assets/.cursor/docs/worklogs/, document inspector requirements step by step, request final review, and only then finalize one scoped commit with allowed prefix.",
+        "model_config": {
+          "model_name": "gpt-5.3-codex",
+          "temperature": 0.05,
+          "system_instruction": "Document implementation traceability, capture inspector setup requirements, and finalize repository state only after approval."
+        },
+        "nuances": [
+          "Every implemented step with repository changes requires reviewer approval before commit.",
+          "Exactly one commit for this scoped task.",
+          "Include summary, files changed, scene/inspector, validation, decision log, follow-ups, and commit status in worklog."
+        ],
+        "relations": {
+          "dependencies": [
+            "012"
+          ],
+          "dependent_tasks": []
+        },
+        "output_format": "MARKDOWN",
+        "retry_policy": {
+          "max_attempts": 1,
+          "fallback_step": null
+        }
+      }
+    ]
+  },
+  "unresolved_questions": [
+    "Completed dialogue restart policy: repeatable by config or single-use by default.",
+    "Unavailable dialogue options UX: hidden or disabled in final shipped flow.",
+    "Need speakerId in v1 runtime contracts now, or speakerName is enough until portraits and richer speaker metadata appear."
+  ]
+}

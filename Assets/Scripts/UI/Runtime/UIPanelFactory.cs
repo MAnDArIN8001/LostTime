@@ -15,6 +15,7 @@ namespace UI.Runtime
         
         private readonly Dictionary<PanelId, IUIPanel> _createdPanelById = new();
         private readonly Dictionary<PanelId, GameObject> _prefabById = new();
+        private readonly Dictionary<PanelId, bool> _prefabLoadedByLoaderById = new();
 
         public UIPanelFactory(
             IUIPanelRegistry registry,
@@ -48,7 +49,14 @@ namespace UI.Runtime
                 return null;
             }
 
-            var prefab = _resourceLoader.LoadPanelPrefab(panelId, registration.AssetPath);
+            var prefab = registration.Prefab;
+            var loadedByLoader = false;
+            if (prefab == null)
+            {
+                prefab = _resourceLoader.LoadPanelPrefab(panelId, registration.AssetPath);
+                loadedByLoader = true;
+            }
+
             if (prefab == null)
             {
                 return null;
@@ -60,7 +68,10 @@ namespace UI.Runtime
                 Debug.LogError(
                     $"[UIPanelFactory] Panel prefab '{registration.AssetPath}' does not contain component {registration.PanelType.Name}.");
                 UnityEngine.Object.Destroy(instance);
-                _resourceLoader.ReleasePanelPrefab(panelId, prefab);
+                if (loadedByLoader)
+                {
+                    _resourceLoader.ReleasePanelPrefab(panelId, prefab);
+                }
                 return null;
             }
 
@@ -70,12 +81,16 @@ namespace UI.Runtime
                 Debug.LogError(
                     $"[UIPanelFactory] Component {registration.PanelType.Name} does not implement IUIPanel.");
                 UnityEngine.Object.Destroy(instance);
-                _resourceLoader.ReleasePanelPrefab(panelId, prefab);
+                if (loadedByLoader)
+                {
+                    _resourceLoader.ReleasePanelPrefab(panelId, prefab);
+                }
                 return null;
             }
 
             _createdPanelById[panelId] = panel;
             _prefabById[panelId] = prefab;
+            _prefabLoadedByLoaderById[panelId] = loadedByLoader;
             return panel;
         }
 
@@ -105,8 +120,13 @@ namespace UI.Runtime
 
             if (_prefabById.TryGetValue(panelId, out var prefab))
             {
-                _resourceLoader.ReleasePanelPrefab(panelId, prefab);
+                if (_prefabLoadedByLoaderById.TryGetValue(panelId, out var loadedByLoader) && loadedByLoader)
+                {
+                    _resourceLoader.ReleasePanelPrefab(panelId, prefab);
+                }
+
                 _prefabById.Remove(panelId);
+                _prefabLoadedByLoaderById.Remove(panelId);
             }
         }
 

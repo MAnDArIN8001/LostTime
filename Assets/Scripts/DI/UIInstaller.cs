@@ -62,33 +62,40 @@ namespace DI
 
             public void Initialize()
             {
-                if (_runtimeConfig == null || _runtimeConfig.PanelEntries == null)
+                if (_runtimeConfig == null || _runtimeConfig.PanelDefinitions == null)
                 {
                     return;
                 }
 
-                var bindings = _runtimeConfig.PanelEntries;
-                for (var i = 0; i < bindings.Count; i++)
+                var definitions = _runtimeConfig.PanelDefinitions;
+                for (var i = 0; i < definitions.Count; i++)
                 {
-                    var binding = bindings[i];
-                    var panelType = ResolvePanelType(binding.PanelTypeName);
+                    var definition = definitions[i];
+                    if (definition == null)
+                    {
+                        Debug.LogError($"[UIInstaller] Panel definition at index {i} is null.");
+                        continue;
+                    }
+
+                    var panelType = ResolvePanelType(definition.PanelTypeName);
 
                     if (panelType == null)
                     {
-                        Debug.LogError($"[UIInstaller] Unknown panel type '{binding.PanelTypeName}'.");
+                        Debug.LogError($"[UIInstaller] Unknown panel type '{definition.PanelTypeName}'.");
                         continue;
                     }
 
                     if (!typeof(IUIPanel).IsAssignableFrom(panelType))
                     {
-                        Debug.LogError($"[UIInstaller] Type '{binding.PanelTypeName}' does not implement IUIPanel.");
+                        Debug.LogError($"[UIInstaller] Type '{definition.PanelTypeName}' does not implement IUIPanel.");
                         continue;
                     }
 
                     _registry.Register(new UIPanelRegistration(
                         PanelId.From(panelType),
                         panelType,
-                        binding.AssetPath));
+                        definition.AssetPathOrKey,
+                        definition.PanelPrefab));
                 }
             }
 

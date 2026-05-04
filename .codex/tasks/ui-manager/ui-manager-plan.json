@@ -1,0 +1,308 @@
+{
+  "task_metadata": {
+      "plan_id": "UI-SVC-2026-05-01-001",
+      "task_name": "Isolated UI Module with Abstract Panels, DI Service, Resource Loader, Stack, and KeepAlive Cache",
+      "version": "1.0.1",
+      "created_at": "2026-05-01T00:00:00+03:00",
+      "priority": "HIGH"
+    },
+    "execution_policy": {
+      "review_gate_required": true,
+      "review_gate_rule": "After each implemented step with repository changes, request reviewer approval and do not commit until explicit approval is received.",
+      "commit_rule": "Single scoped commit is allowed only after reviewer approval."
+    },
+    "execution_graph": {
+      "steps": [
+        {
+          "id": "001",
+          "description": "Reasoning pass: lock API boundaries and validate architecture constraints before code changes.",
+          "model_config": {
+            "model_name": "gpt-5.4",
+            "temperature": 0.1,
+            "system_instruction": "Perform architecture reasoning only. Define stable contracts and extension points for UI module."
+          },
+          "nuances": [
+            "PanelId generated from panel type, no manual ids.",
+            "Design with future cache-limit strategy extension."
+          ],
+          "relations": {
+            "dependencies": [],
+            "dependent_tasks": [
+              "002"
+            ]
+          },
+          "output_format": "MARKDOWN",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": null
+          }
+        },
+        {
+          "id": "002",
+          "description": "Create UI module folder structure and core contracts: IUIService, IUIPanel, IResourceLoader, panel config types, cache policy enum, and close semantics.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Implement Unity C# contracts for DI-first isolated UI architecture."
+          },
+          "nuances": [
+            "No XML comments for public interfaces.",
+            "Contracts must avoid coupling to concrete loaders."
+          ],
+          "relations": {
+            "dependencies": [
+              "001"
+            ],
+            "dependent_tasks": [
+              "003"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "001"
+          }
+        },
+        {
+          "id": "003",
+          "description": "Implement AbstractUIPanel base class with generated PanelId, base config, lifecycle hooks, and clean enable/disable flow.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Build extensible abstract panel runtime with strict lifecycle boundaries."
+          },
+          "nuances": [
+            "Support modal and non-modal flags in base config.",
+            "No direct resource/service internals in panel base."
+          ],
+          "relations": {
+            "dependencies": [
+              "002"
+            ],
+            "dependent_tasks": [
+              "004"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "002"
+          }
+        },
+        {
+          "id": "004",
+          "description": "Implement resource abstraction: IResourceLoader + Resources loader + Addressables loader path (stub or real based on project setup), including release flow.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Implement swappable resource-loading backend for UI runtime instances."
+          },
+          "nuances": [
+            "UI service depends only on abstraction.",
+            "Release semantics must support destroy and keepalive paths."
+          ],
+          "relations": {
+            "dependencies": [
+              "002"
+            ],
+            "dependent_tasks": [
+              "005"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "002"
+          }
+        },
+        {
+          "id": "005",
+          "description": "Implement panel registry/factory: type-based registration, generated PanelId resolution, and runtime instantiation pipeline.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.15,
+            "system_instruction": "Create robust, low-overhead panel creation and lookup mechanism."
+          },
+          "nuances": [
+            "O(1) lookups for open/close path.",
+            "Prevent accidental duplicate active instances."
+          ],
+          "relations": {
+            "dependencies": [
+              "003",
+              "004"
+            ],
+            "dependent_tasks": [
+              "006"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "004"
+          }
+        },
+        {
+          "id": "006",
+          "description": "Implement UIService core: Open/Close/CloseAll/CloseTop/IsOpen/TryGet; unified stack for all windows; keepalive cache; IDisposable cleanup.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Implement deterministic and optimized UI orchestration service."
+          },
+          "nuances": [
+            "Esc behavior maps to CloseAll and gameplay return.",
+            "KeepAlive panels hidden and cached without destroy."
+          ],
+          "relations": {
+            "dependencies": [
+              "005"
+            ],
+            "dependent_tasks": [
+              "007"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 3,
+            "fallback_step": "005"
+          }
+        },
+        {
+          "id": "007",
+          "description": "Implement input gating integration for UI flow and restore on CloseAll. Wire esc-close behavior through service entrypoint.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Integrate UI lifecycle with input state control via DI boundaries."
+          },
+          "nuances": [
+            "Idempotent restore path required.",
+            "No stuck blocked-input states after exceptions/dispose."
+          ],
+          "relations": {
+            "dependencies": [
+              "006"
+            ],
+            "dependent_tasks": [
+              "008"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "006"
+          }
+        },
+        {
+          "id": "008",
+          "description": "Create Zenject UIInstaller bindings for service, loaders, registry, factory, and lifecycle/disposal integration.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Bind full UI module in Zenject with clear ownership and cleanup."
+          },
+          "nuances": [
+            "Preserve existing input installer behavior.",
+            "Allow backend loader switch by binding replacement."
+          ],
+          "relations": {
+            "dependencies": [
+              "007"
+            ],
+            "dependent_tasks": [
+              "009"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "007"
+          }
+        },
+        {
+          "id": "009",
+          "description": "Migrate 3 target windows to new module: GuideStory, WinScreen, InteractionHint, and route interactions through IUIService.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.15,
+            "system_instruction": "Perform safe incremental migration while preserving runtime UX."
+          },
+          "nuances": [
+            "Single stack path for all windows, including hint panel.",
+            "Minimize scene wiring breakage during migration."
+          ],
+          "relations": {
+            "dependencies": [
+              "008"
+            ],
+            "dependent_tasks": [
+              "010"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 3,
+            "fallback_step": "008"
+          }
+        },
+        {
+          "id": "010",
+          "description": "Add/adjust tests for stack ordering, CloseAll, keepalive reuse, loader release flow, and service dispose cleanup.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.1,
+            "system_instruction": "Validate critical invariants and regression-risk behaviors for new UI architecture."
+          },
+          "nuances": [
+            "Include repeated open/close loop checks for leaks.",
+            "Cover mixed modal/non-modal sequences."
+          ],
+          "relations": {
+            "dependencies": [
+              "009"
+            ],
+            "dependent_tasks": [
+              "011"
+            ]
+          },
+          "output_format": "CODE",
+          "retry_policy": {
+            "max_attempts": 2,
+            "fallback_step": "009"
+          }
+        },
+        {
+          "id": "011",
+          "description": "Create/update worklog using template under Assets/.cursor/docs/worklogs/, request final review, and only then finalize one scoped commit with allowed prefix.",
+          "model_config": {
+            "model_name": "gpt-5.3-codex",
+            "temperature": 0.05,
+            "system_instruction": "Document implementation traceability and finalize repository state."
+          },
+          "nuances": [
+            "If Assets/.cursor docs path is missing, create it before writing worklog.",
+            "Exactly one commit for this scoped task.",
+            "Commit only after explicit reviewer approval."
+          ],
+          "relations": {
+            "dependencies": [
+              "010"
+            ],
+            "dependent_tasks": []
+          },
+          "output_format": "MARKDOWN",
+          "retry_policy": {
+            "max_attempts": 1,
+            "fallback_step": null
+          }
+        }
+      ]
+    },
+    "unresolved_questions": [
+      "PanelId runtime key format: string full type name or int hash derived from type.",
+      "CloseAll behavior for KeepAlive windows: hide+cache confirmed, no forced destroy.",
+      "Esc binding source: dedicated action in MainInput or existing cancel action."
+    ]
+  }
+  
